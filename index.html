@@ -739,9 +739,15 @@ input, textarea, select { font-family: inherit; }
 
   /* ========== 地理编码 + 排序 + 规划 ========== */
   var startLng = null, startLat = null;
-  function geocodeOne(c) {
+  function withTimeout(p, ms) {
     return new Promise(function(resolve, reject) {
-      if (c.coded) return resolve(c);
+      var timer = setTimeout(function() { reject(new Error('timeout')); }, ms);
+      p.then(function(v) { clearTimeout(timer); resolve(v); }, function(e) { clearTimeout(timer); reject(e); });
+    });
+  }
+  function geocodeOne(c) {
+    if (c.coded) return Promise.resolve(c);
+    return withTimeout(new Promise(function(resolve, reject) {
       var geocoder = new AMap.Geocoder({});
       geocoder.getLocation(c.address, function(status, result) {
         if (status === 'complete' && result.geocodes && result.geocodes.length) {
@@ -753,10 +759,10 @@ input, textarea, select { font-family: inherit; }
           reject(c);
         }
       });
-    });
+    }), 10000);
   }
   function geocodeStart(addr) {
-    return new Promise(function(resolve, reject) {
+    return withTimeout(new Promise(function(resolve, reject) {
       var geocoder = new AMap.Geocoder({});
       geocoder.getLocation(addr, function(status, result) {
         if (status === 'complete' && result.geocodes && result.geocodes.length) {
@@ -765,7 +771,7 @@ input, textarea, select { font-family: inherit; }
           resolve();
         } else reject(new Error('起点解析失败'));
       });
-    });
+    }), 10000);
   }
   function tspNearest(points, startPt) {
     // points: [{idx, lng, lat}]  从 startPt 出发贪心最近邻
@@ -785,14 +791,14 @@ input, textarea, select { font-family: inherit; }
     return order;
   }
   function driveBetween(from, to) {
-    return new Promise(function(resolve, reject) {
+    return withTimeout(new Promise(function(resolve, reject) {
       var driving = new AMap.Driving({ policy: AMap.DrivingPolicy.LEAST_TIME });
       driving.search([from.lng, from.lat], [to.lng, to.lat], function(status, result) {
         if (status === 'complete' && result.routes && result.routes.length) {
           resolve(result.routes[0]);
         } else reject(new Error('driving fail'));
       });
-    });
+    }), 15000);
   }
   function planRoute(useSort) {
     if (!amapReady) {
@@ -827,12 +833,17 @@ input, textarea, select { font-family: inherit; }
           return geocodeOne(c).catch(function() { fails.push(c); }).then(step);
         })();
       });
-      return Promise.all(workers).then(function() {
+      return withTimeout(Promise.all(workers), 30000).then(function() {
         save();
         renderList();
         if (fails.length) toast(fails.length + ' 个地址未能定位（请核对地址），已排除出路线');
         var valid = customers.filter(function(c) { return c.coded; });
-        if (!valid.length) { toast('没有可用的客户坐标'); return; }
+        if (!valid.length) {
+          toast('没有可用的客户坐标，请核对地址后重试');
+          btn.disabled = false; btn2.disabled = false;
+          btn.innerHTML = '重新规划'; btn2.innerHTML = '重新规划';
+          return;
+        }
 
         // 3. 智能排序（可选）
         var order = valid.slice();
@@ -911,6 +922,10 @@ input, textarea, select { font-family: inherit; }
         };
         run(0);
       });
+    }, function() {
+      toast('定位超时，请稍后重试');
+      btn.disabled = false; btn2.disabled = false;
+      btn.innerHTML = '重新规划'; btn2.innerHTML = '重新规划';
     });
   }
 
