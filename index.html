@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拜访路线规划 · 美灿健康</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap">
+<style>
+/* ===== 基础 ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
+  background: #F2F5F4;
+  color: #1B2C29;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+:root {
+  --primary: #0D9488;
+  --primary-dark: #0F766E;
+  --primary-light: #D9F2EF;
+  --accent: #E87A2B;
+  --bg: #F2F5F4;
+  --card: #FFFFFF;
+  --text: #1B2C29;
+  --text-2: #5B706C;
+  --text-3: #93A5A1;
+  --border: #E0E8E7;
+  --danger: #D64545;
+  --radius: 12px;
+}
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }
+
+/* ===== 顶栏 ===== */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-badge {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: var(--primary);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.brand-sub { font-size: 11px; color: var(--text-3); font-weight: 400; }
+.top-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.icon-btn {
+  width: 38px; height: 38px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-2);
+  transition: background .15s, border-color .15s;
+}
+.icon-btn:active { background: var(--bg); }
+
+/* ===== 布局 ===== */
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 14px 90px;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.panel-left { display: flex; flex-direction: column; }
+.panel-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+}
+.panel-head h2 { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.panel-head .count { font-size: 12px; color: var(--text-3); font-weight: 400; }
+
+/* ===== 起点 & 输入 ===== */
+.start-box, .input-box { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.field-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; display: block; }
+.start-input, .addr-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: #FAFCFB;
+  color: var(--text);
+  transition: border-color .15s, background .15s;
+}
+.start-input:focus, .addr-input:focus { outline: none; border-color: var(--primary); background: #fff; }
+.start-input::placeholder, .addr-input::placeholder { color: var(--text-3); }
+.addr-input { resize: vertical; min-height: 86px; line-height: 1.6; }
+.input-actions { display: flex; gap: 8px; margin-top: 8px; }
+.input-actions .btn { flex: 1; }
+
+/* ===== 按钮 ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 14px;
+  font-size: 13px; font-weight: 600;
+  border-radius: 9px;
+  border: 1.5px solid transparent;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:active { background: var(--primary-dark); }
+.btn-ghost { background: #fff; border-color: var(--border); color: var(--text-2); }
+.btn-ghost:active { background: var(--bg); }
+.btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+.btn-warn { background: #FFF4EC; border-color: #F5D6BC; color: var(--accent); }
+
+/* ===== 客户列表 ===== */
+.customer-list { flex: 1; overflow-y: auto; max-height: 56vh; padding: 8px; }
+.c-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #FBFCFC;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  transition: border-color .15s;
+}
+.c-item.active { border-color: var(--primary); background: #F3FBFA; }
+.c-idx {
+  width: 26px; height: 26px; flex-shrink: 0;
+  border-radius: 8px;
+  background: #E9F1F0;
+  color: var(--primary-dark);
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.c-item.active .c-idx { background: var(--primary); color: #fff; }
+.c-main { flex: 1; min-width: 0; }
+.c-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.c-addr { font-size: 12px; color: var(--text-2); margin-top: 3px; line-height: 1.5; word-break: break-all; }
+.c-meta { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+.c-ops { display: flex; gap: 4px; flex-shrink: 0; }
+.mini-btn {
+  width: 26px; height: 26px;
+  border: none; background: transparent;
+  border-radius: 6px;
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+}
+.mini-btn:active { background: #EDF2F1; color: var(--text-2); }
+.mini-btn.del:active { background: #FDEDED; color: var(--danger); }
+.list-empty { text-align: center; padding: 40px 16px; color: var(--text-3); font-size: 13px; line-height: 2; }
+.list-foot { padding: 10px 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #FAFCFB; }
+.list-foot .btn { flex: 1; }
+
+/* ===== 地图面板 ===== */
+.map-wrap { position: relative; }
+#map { width: 100%; height: calc(100vh - 180px); min-height: 420px; background: #E8EEED; }
+.map-mask {
+  position: absolute; inset: 0; z-index: 5;
+  background: rgba(242,245,244,0.94);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.map-mask-inner { max-width: 420px; text-align: center; }
+.map-mask h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+.map-mask p { font-size: 13px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+.map-mask .btn { display: inline-flex; margin: 0 4px 8px; }
+.map-mask .hint { font-size: 11px; color: var(--text-3); line-height: 1.7; }
+.map-tools {
+  position: absolute; top: 12px; left: 12px; z-index: 6;
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.map-tools .btn { background: #fff; border-color: var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.map-tools .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.map-status {
+  position: absolute; left: 12px; bottom: 12px; z-index: 6;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  max-width: calc(100% - 24px);
+}
+.map-status b { color: var(--primary-dark); }
+
+/* ===== 路线摘要 ===== */
+.route-summary { border-top: 1px solid var(--border); padding: 10px 12px; background: #fff; }
+.route-summary .rs-title { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.rs-list { max-height: 150px; overflow-y: auto; margin-bottom: 8px; }
+.rs-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; border-bottom: 1px dashed #EDF1F0; }
+.rs-item:last-child { border-bottom: none; }
+.rs-no {
+  width: 20px; height: 20px; flex-shrink: 0;
+  background: var(--primary-light); color: var(--primary-dark);
+  border-radius: 50%;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.rs-item .rs-name { font-weight: 600; color: var(--text); }
+.rs-item .rs-addr { color: var(--text-3); flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 6px; }
+.rs-stats { display: flex; gap: 8px; margin-bottom: 8px; }
+.rs-stat { flex: 1; background: #F6F9F8; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
+.rs-stat .v { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+.rs-stat .k { font-size: 11px; color: var(--text-3); }
+.rs-actions { display: flex; gap: 8px; }
+.rs-actions .btn { flex: 1; }
+
+/* ===== 移动端底部导航 ===== */
+.tabbar {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+}
+.tabbar .tab {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 0;
+  border: none; background: none;
+  color: var(--text-3);
+  font-size: 11px; font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+}
+.tabbar .tab.active { color: var(--primary); }
+
+/* ===== 弹窗 ===== */
+.modal-mask {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(20,32,30,0.45);
+  display: none; align-items: flex-end; justify-content: center;
+}
+.modal-mask.show { display: flex; }
+.modal {
+  background: #fff;
+  width: 100%; max-width: 520px;
+  border-radius: 16px 16px 0 0;
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 20px 20px 24px;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { transform: translateY(30px); opacity: .5; } to { transform: translateY(0); opacity: 1; } }
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.modal .m-sub { font-size: 12px; color: var(--text-2); line-height: 1.7; margin-bottom: 14px; }
+.modal .m-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin: 14px 0 6px; display: block; }
+.modal input[type="text"], .modal input[type="password"], .modal textarea {
+  width: 100%; padding: 10px 12px;
+  font-size: 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: #FAFCFB;
+  color: var(--text);
+}
+.modal input:focus, .modal textarea:focus { outline: none; border-color: var(--primary); background: #fff; }
+.steps { background: #F6F9F8; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
+.steps ol { margin-left: 18px; }
+.steps li { font-size: 12px; color: var(--text-2); line-height: 1.9; }
+.steps code { background: #E8EFEE; border-radius: 4px; padding: 1px 5px; font-size: 11px; color: var(--primary-dark); }
+.m-actions { display: flex; gap: 8px; margin-top: 16px; }
+.m-actions .btn { flex: 1; }
+.m-msg { font-size: 12px; margin-top: 10px; line-height: 1.6; }
+.m-msg.ok { color: var(--primary-dark); }
+.m-msg.err { color: var(--danger); }
+
+/* ===== Toast ===== */
+#toast {
+  position: fixed; left: 50%; bottom: 100px; z-index: 60;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(27,44,41,0.92);
+  color: #fff;
+  font-size: 13px;
+  padding: 10px 18px;
+  border-radius: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s, transform .25s;
+  max-width: 82vw; text-align: center;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== 打印 ===== */
+@media print {
+  body { background: #fff; }
+  .topbar, .tabbar, .map-wrap, .panel-left, .map-tools, .map-status, .rs-actions, .map-mask { display: none !important; }
+  .app { display: block; padding: 0; }
+  .print-only { display: block !important; }
+  .rs-list { max-height: none; }
+}
+.print-only { display: none; }
+
+/* ===== 响应式 ===== */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; padding: 10px 10px 80px; }
+  .panel-left { display: none; }
+  .panel-left.show { display: flex; }
+  .panel-right { display: none; }
+  .panel-right.show { display: block; }
+  #map { height: calc(100vh - 250px); min-height: 380px; }
+  .tabbar { display: flex; }
+  .customer-list { max-height: none; }
+  .rs-list { max-height: 110px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 顶栏 ===== -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-badge">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0 0 21 18.382V7.618a1 1 0 0 0-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+    </div>
+    <div>
+      <div class="brand-title">拜访路线规划</div>
+      <div class="brand-sub">客户地址 · 智能排序 · 驾车路线</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button class="icon-btn" id="settingsBtn" title="地图设置" aria-label="地图设置">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- ===== 左：客户列表 ===== -->
+  <section class="panel panel-left show" id="panelList">
+    <div class="start-box">
+      <label class="field-label">拜访起点（可选，默认为第一个客户）</label>
+      <input type="text" class="start-input" id="startAddr" placeholder="如：浙江省杭州市西湖区文三路138号（公司地址）">
+    </div>
+    <div class="input-box">
+      <label class="field-label">批量添加客户（每行一个，格式：姓名|地址 或 仅地址）</label>
+      <textarea class="addr-input" id="addrInput" placeholder="张三|浙江省杭州市西湖区文三路138号&#10;李四|浙江省杭州市拱墅区莫干山路100号"></textarea>
+      <div class="input-actions">
+        <button class="btn btn-primary" id="addBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          添加客户
+        </button>
+        <button class="btn btn-ghost" id="demoBtn">填入示例</button>
+      </div>
+    </div>
+    <div class="panel-head">
+      <h2>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        客户列表 <span class="count" id="countLabel">0 位</span>
+      </h2>
+      <button class="btn btn-ghost btn-sm" id="clearBtn">清空</button>
+    </div>
+    <div class="customer-list" id="customerList"></div>
+    <div class="list-foot">
+      <button class="btn btn-ghost btn-sm" id="importBtn">导入数据</button>
+      <button class="btn btn-ghost btn-sm" id="exportBtn">导出备份</button>
+      <button class="btn btn-ghost btn-sm" id="printBtn">打印清单</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none">
+  </section>
+
+  <!-- ===== 右：地图 ===== -->
+  <section class="panel panel-right" id="panelMap">
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-tools" id="mapTools" style="display:none">
+        <button class="btn primary" id="planBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+          规划路线
+        </button>
+        <button class="btn" id="sortBtn">智能排序</button>
+        <button class="btn" id="fitBtn">全览</button>
+      </div>
+      <div class="map-status" id="mapStatus" style="display:none">
+        未规划 · 共 <b id="stCount">0</b> 个客户点
+      </div>
+      <div class="map-mask" id="mapMask">
+        <div class="map-mask-inner">
+          <h3 id="maskTitle">启用地图，一键规划拜访路线</h3>
+          <p id="maskDesc">在下方填写客户地址后，点击「规划路线」，系统将自动计算最优拜访顺序并在地图上生成驾车路线。</p>
+          <button class="btn btn-primary" id="maskSetupBtn">配置高德地图 Key</button>
+          <button class="btn btn-ghost" id="maskListBtn">先管理客户列表</button>
+          <div class="hint" id="maskHint">地图需联网加载（高德地图服务）。未配置 Key 时，地址管理、智能排序、打印清单仍可离线使用。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 路线摘要 -->
+    <div class="route-summary">
+      <div class="rs-title">
+        <span>拜访顺序</span>
+        <span id="rsMeta" style="color:var(--text-3);font-weight:400"></span>
+      </div>
+      <div class="rs-list" id="rsList">
+        <div class="list-empty" style="padding:16px">暂无路线，点击上方「规划路线」生成拜访顺序</div>
+      </div>
+      <div class="rs-stats" id="rsStats" style="display:none">
+        <div class="rs-stat"><div class="v" id="rsDist">0</div><div class="k">总里程 (km)</div></div>
+        <div class="rs-stat"><div class="v" id="rsTime">0</div><div class="k">预计驾驶 (min)</div></div>
+        <div class="rs-stat"><div class="v" id="rsStops">0</div><div class="k">拜访点</div></div>
+      </div>
+      <div class="rs-actions">
+        <button class="btn btn-primary" id="planBtn2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+          规划路线
+        </button>
+        <button class="btn btn-ghost" id="printBtn2">打印拜访清单</button>
+      </div>
+      <!-- 打印专用 -->
+      <div class="print-only">
+        <div id="printList" style="padding:10px 0"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===== 移动端 Tab ===== -->
+<nav class="tabbar">
+  <button class="tab active" id="tabList">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+    客户列表
+  </button>
+  <button class="tab" id="tabMap">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+    路线地图
+  </button>
+</nav>
+
+<!-- ===== 设置弹窗 ===== -->
+<div class="modal-mask" id="settingsModal">
+  <div class="modal">
+    <h3>地图服务配置</h3>
+    <p class="m-sub">本页面使用高德地图渲染路线。地图数据需联网获取，网页文件与客户数据始终保存在您本地。</p>
+
+    <label class="m-label">高德地图 Key（JS API 专用）</label>
+    <input type="text" id="amapKey" placeholder="粘贴您的 Key，如 6f5d3a...">
+
+    <label class="m-label">安全密钥 securityJsCode</label>
+    <input type="password" id="amapJscode" placeholder="粘贴安全密钥（申请 Key 时一同获取）">
+
+    <div class="steps">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">免费申请步骤（约 5 分钟）</div>
+      <ol>
+        <li>打开 <code>console.amap.com</code>，用手机号注册登录（个人开发者免费）</li>
+        <li>进入「应用管理 → 我的应用 → 创建新应用」，名称随意，如「拜访路线」</li>
+        <li>在应用下「添加 Key」：服务平台选 <b>Web端(JS API)</b>，域名白名单填 <code>*</code></li>
+        <li>创建后点击「设置」开启数字签名，复制生成的 <b>Key</b> 与 <b>安全密钥</b> 填入上方两个框</li>
+        <li>点击「保存并加载」即可使用</li>
+      </ol>
+    </div>
+
+    <div class="m-actions">
+      <button class="btn btn-primary" id="saveKeyBtn">保存并加载</button>
+      <button class="btn btn-ghost" id="closeModalBtn">关闭</button>
+    </div>
+    <div class="m-msg" id="keyMsg"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ========== 状态 ========== */
+  var LS = {
+    customers: 'mc_visit_customers',
+    start: 'mc_visit_start',
+    key: 'mc_visit_amap_key',
+    jscode: 'mc_visit_amap_jscode'
+  };
+  var customers = [];   // {id, name, address, lng, lat, coded}
+  var startAddr = '';
+  var map = null, amapReady = false, amapLoading = false, keySaved = false;
+  var markers = [], lineLayer = null, routeLayer = null;
+  var planned = [];     // 排序后的 {id, name, address, lng, lat}
+  var stats = { dist: 0, time: 0 };
+
+  /* ========== 工具 ========== */
+  function $(id) { return document.getElementById(id); }
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() { t.classList.remove('show'); }, 2600);
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+  function save() {
+    try {
+      localStorage.setItem(LS.customers, JSON.stringify(customers));
+      localStorage.setItem(LS.start, startAddr);
+    } catch(e) { /* 存储失败忽略 */ }
+  }
+  function load() {
+    try {
+      customers = JSON.parse(localStorage.getItem(LS.customers) || '[]') || [];
+      startAddr = localStorage.getItem(LS.start) || '';
+    } catch(e) { customers = []; startAddr = ''; }
+    $('startAddr').value = startAddr;
+  }
+  function haversine(a, b) {
+    var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
+    var la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180;
+    var h = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(la1)*Math.cos(la2)*Math.sin(dLng/2)*Math.sin(dLng/2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
+  /* ========== 高德加载 ========== */
+  function loadAMap(key, jscode) {
+    if (amapReady || amapLoading) return;
+    amapLoading = true;
+    window._AMapSecurityConfig = { securityJsCode: jscode };
+    var s = document.createElement('script');
+    s.src = 'https://webapi.amap.com/maps?v=2.0&key=' + encodeURIComponent(key);
+    s.async = true;
+    s.onload = function() {
+      if (typeof AMap === 'undefined') {
+        amapLoading = false;
+        setMask(true, '加载失败', '高德地图加载失败，请检查 Key 是否正确、网络是否可用。', true);
+        return;
+      }
+      AMap.plugin(['AMap.Geocoder', 'AMap.Driving'], function() {
+        amapReady = true;
+        amapLoading = false;
+        keySaved = true;
+        setMask(false);
+        initMap();
+        $('mapTools').style.display = 'flex';
+        $('mapStatus').style.display = 'block';
+        toast('地图已加载');
+      });
+    };
+    s.onerror = function() {
+      amapLoading = false;
+      setMask(true, '加载失败', '无法连接高德地图服务，请检查网络后重试。', true);
+    };
+    document.head.appendChild(s);
+  }
+  function setMask(show, title, desc, withBtn) {
+    var mask = $('mapMask');
+    if (!show) { mask.style.display = 'none'; return; }
+    mask.style.display = 'flex';
+    if (title) $('maskTitle').textContent = title;
+    if (desc) $('maskDesc').textContent = desc;
+    $('maskSetupBtn').style.display = withBtn ? 'inline-flex' : 'none';
+  }
+
+  /* ========== 地图 ========== */
+  function initMap() {
+    map = new AMap.Map('map', {
+      zoom: 11,
+      center: [120.1536, 30.2875],  // 杭州
+      mapStyle: 'amap://styles/fresh',
+      viewMode: '2D'
+    });
+    renderAll();
+  }
+  function clearLayers() {
+    markers.forEach(function(m) { map && map.remove(m); });
+    markers = [];
+    if (lineLayer) { map && map.remove(lineLayer); lineLayer = null; }
+    if (routeLayer) { map && map.remove(routeLayer); routeLayer = null; }
+  }
+  function renderAll() {
+    if (!map) return;
+    clearLayers();
+    var hasStart = !!startAddr && !!startLng;
+    var lngs = [], lats = [];
+    planned.forEach(function(c, i) {
+      if (!c.coded || c.lng == null) return;
+      var isStart = false;
+      var content = '<div style="background:#fff;border:2px solid var(--primary);color:var(--primary-dark);' +
+        'border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;' +
+        'font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.15)">' + (i + 1) + '</div>';
+      var marker = new AMap.Marker({
+        position: [c.lng, c.lat],
+        content: content,
+        offset: new AMap.Pixel(-13, -13),
+        title: (i + 1) + '. ' + c.name + ' ' + c.address
+      });
+      map.add(marker);
+      markers.push(marker);
+      lngs.push(c.lng); lats.push(c.lat);
+    });
+    if (startLng != null) {
+      var sm = new AMap.Marker({
+        position: [startLng, startLat],
+        content: '<div style="background:var(--accent);border:2px solid #fff;border-radius:50%;width:30px;height:30px;' +
+          'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;' +
+          'box-shadow:0 2px 6px rgba(0,0,0,0.2)">起</div>',
+        offset: new AMap.Pixel(-15, -15),
+        title: '起点 ' + startAddr
+      });
+      map.add(sm);
+      markers.push(sm);
+      lngs.push(startLng); lats.push(startLat);
+    }
+    if (lngs.length > 1) {
+      map.setFitView(markers, false, [40, 40, 40, 40]);
+    }
+    updateStatus();
+  }
+  function updateStatus() {
+    var codedCount = customers.filter(function(c) { return c.coded; }).length;
+    $('stCount').textContent = customers.length;
+    $('countLabel').textContent = customers.length + ' 位';
+    var msg = '共 ' + customers.length + ' 个客户点';
+    if (codedCount < customers.length && customers.length > 0) {
+      msg += ' · ' + (customers.length - codedCount) + ' 个待定位';
+    }
+    $('mapStatus').innerHTML = '未规划 · <b>' + customers.length + '</b> 个客户点' + (startAddr ? ' · 已设起点' : '');
+  }
+
+  /* ========== 列表渲染 ========== */
+  function renderList() {
+    var ul = $('customerList');
+    $('countLabel').textContent = customers.length + ' 位';
+    if (!customers.length) {
+      ul.innerHTML = '<div class="list-empty">还没有客户地址<br>在上方输入地址后点击「添加客户」，<br>或点击「填入示例」快速体验</div>';
+      updateStatus();
+      return;
+    }
+    var html = '';
+    customers.forEach(function(c, i) {
+      var pos = planned.findIndex(function(p) { return p.id === c.id; });
+      html += '<div class="c-item' + (pos > -1 ? ' active' : '') + '">' +
+        '<div class="c-idx">' + (pos > -1 ? (pos + 1) : (i + 1)) + '</div>' +
+        '<div class="c-main">' +
+          '<div class="c-name">' + esc(c.name || '客户') + '</div>' +
+          '<div class="c-addr">' + esc(c.address) + '</div>' +
+          '<div class="c-meta">' + (c.coded ? '已定位' : '待定位') + (pos > -1 ? ' · 第 ' + (pos + 1) + ' 站' : '') + '</div>' +
+        '</div>' +
+        '<div class="c-ops">' +
+          '<button class="mini-btn" data-act="up" data-id="' + c.id + '" title="上移"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>' +
+          '<button class="mini-btn" data-act="down" data-id="' + c.id + '" title="下移"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
+          '<button class="mini-btn del" data-act="del" data-id="' + c.id + '" title="删除"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>' +
+        '</div>' +
+      '</div>';
+    });
+    ul.innerHTML = html;
+    updateStatus();
+  }
+  function renderRouteSummary() {
+    var list = $('rsList'), meta = $('rsMeta');
+    if (!planned.length) {
+      list.innerHTML = '<div class="list-empty" style="padding:16px">暂无路线，点击「规划路线」生成拜访顺序</div>';
+      $('rsStats').style.display = 'none';
+      meta.textContent = '';
+      return;
+    }
+    var html = '';
+    planned.forEach(function(c, i) {
+      html += '<div class="rs-item"><div class="rs-no">' + (i + 1) + '</div>' +
+        '<span class="rs-name">' + esc(c.name || '客户' + (i + 1)) + '</span>' +
+        '<span class="rs-addr">' + esc(c.address) + '</span></div>';
+    });
+    list.innerHTML = html;
+    $('rsStats').style.display = 'flex';
+    $('rsDist').textContent = stats.dist.toFixed(1);
+    $('rsTime').textContent = stats.time;
+    $('rsStops').textContent = planned.length;
+    meta.textContent = '起点' + (startAddr ? '已设' : '＝第 1 个客户') + ' · 共 ' + (planned.length + (startLng != null ? 1 : 0)) + ' 点';
+    // 打印清单
+    var ph = '<h3 style="font-size:16px;margin-bottom:10px">客户拜访清单</h3>' +
+      '<p style="font-size:12px;color:#666;margin-bottom:12px">' + new Date().toLocaleString('zh-CN') + (startAddr ? ' · 起点：' + startAddr : '') + '</p>';
+    if (startAddr) {
+      ph += '<div style="margin-bottom:8px;font-size:13px"><b>起</b> ' + esc(startAddr) + '</div>';
+    }
+    planned.forEach(function(c, i) {
+      ph += '<div style="padding:6px 0;border-bottom:1px solid #eee;font-size:13px">' +
+        '<b style="margin-right:6px">' + (i + 1) + '.</b>' + esc(c.name || '客户') +
+        '<div style="color:#666;font-size:12px;margin-top:2px;margin-left:22px">' + esc(c.address) + '</div></div>';
+    });
+    $('printList').innerHTML = ph;
+  }
+
+  /* ========== 添加/删除客户 ========== */
+  function addCustomers(text) {
+    var lines = text.split('\n').map(function(s) { return s.trim(); }).filter(Boolean);
+    var added = 0;
+    lines.forEach(function(line) {
+      var name = '', addr = line;
+      var sep = line.indexOf('|');
+      if (sep > -1) { name = line.slice(0, sep).trim(); addr = line.slice(sep + 1).trim(); }
+      if (!addr) return;
+      // 去重
+      var dup = customers.some(function(c) { return c.address === addr; });
+      if (dup) return;
+      customers.push({
+        id: 'c' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+        name: name,
+        address: addr,
+        lng: null, lat: null, coded: false
+      });
+      added++;
+    });
+    if (added) { save(); renderList(); }
+    return added;
+  }
+  function delCustomer(id) {
+    customers = customers.filter(function(c) { return c.id !== id; });
+    planned = planned.filter(function(p) { return p.id !== id; });
+    save(); renderList(); renderRouteSummary();
+    if (map) renderAll();
+  }
+  function moveCustomer(id, dir) {
+    var i = customers.findIndex(function(c) { return c.id === id; });
+    if (i < 0) return;
+    var j = i + dir;
+    if (j < 0 || j >= customers.length) return;
+    var t = customers[i]; customers[i] = customers[j]; customers[j] = t;
+    save(); renderList();
+  }
+
+  /* ========== 地理编码 + 排序 + 规划 ========== */
+  var startLng = null, startLat = null;
+  function geocodeOne(c) {
+    return new Promise(function(resolve, reject) {
+      if (c.coded) return resolve(c);
+      var geocoder = new AMap.Geocoder({});
+      geocoder.getLocation(c.address, function(status, result) {
+        if (status === 'complete' && result.geocodes && result.geocodes.length) {
+          var g = result.geocodes[0];
+          c.lng = g.location.lng; c.lat = g.location.lat; c.coded = true;
+          resolve(c);
+        } else {
+          c.coded = false;
+          reject(c);
+        }
+      });
+    });
+  }
+  function geocodeStart(addr) {
+    return new Promise(function(resolve, reject) {
+      var geocoder = new AMap.Geocoder({});
+      geocoder.getLocation(addr, function(status, result) {
+        if (status === 'complete' && result.geocodes && result.geocodes.length) {
+          var g = result.geocodes[0];
+          startLng = g.location.lng; startLat = g.location.lat;
+          resolve();
+        } else reject(new Error('起点解析失败'));
+      });
+    });
+  }
+  function tspNearest(points, startPt) {
+    // points: [{idx, lng, lat}]  从 startPt 出发贪心最近邻
+    var visited = {}, order = [];
+    var cur = startPt || points[0];
+    while (order.length < points.length) {
+      var best = -1, bestD = Infinity;
+      for (var i = 0; i < points.length; i++) {
+        if (visited[i]) continue;
+        var d = haversine(cur, points[i]);
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      visited[best] = true;
+      order.push(points[best]);
+      cur = points[best];
+    }
+    return order;
+  }
+  function driveBetween(from, to) {
+    return new Promise(function(resolve, reject) {
+      var driving = new AMap.Driving({ policy: AMap.DrivingPolicy.LEAST_TIME });
+      driving.search([from.lng, from.lat], [to.lng, to.lat], function(status, result) {
+        if (status === 'complete' && result.routes && result.routes.length) {
+          resolve(result.routes[0]);
+        } else reject(new Error('driving fail'));
+      });
+    });
+  }
+  function planRoute(useSort) {
+    if (!amapReady) {
+      setMask(true, '请先配置地图', '需要高德地图 Key 才能生成真实驾车路线。您也可以先管理客户列表。', true);
+      openModal();
+      return;
+    }
+    if (!customers.length) { toast('请先添加客户地址'); return; }
+    var btn = $('planBtn'), btn2 = $('planBtn2');
+    btn.disabled = true; btn2.disabled = true;
+    btn.innerHTML = '定位中…'; btn2.innerHTML = '定位中…';
+
+    // 1. 解析起点
+    var startTask = Promise.resolve();
+    startLng = null; startLat = null;
+    if (startAddr.trim()) {
+      startTask = geocodeStart(startAddr.trim()).catch(function() {
+        toast('起点地址解析失败，将使用第一个客户为起点');
+        startLng = null; startLat = null;
+      });
+    }
+
+    startTask.then(function() {
+      // 2. 地理编码（并发 4）
+      var toCode = customers.filter(function(c) { return !c.coded; });
+      var fails = [];
+      var queue = toCode.slice();
+      var workers = [1, 2, 3, 4].map(function() {
+        return (function step() {
+          if (!queue.length) return Promise.resolve();
+          var c = queue.shift();
+          return geocodeOne(c).catch(function() { fails.push(c); }).then(step);
+        })();
+      });
+      return Promise.all(workers).then(function() {
+        save();
+        renderList();
+        if (fails.length) toast(fails.length + ' 个地址未能定位（请核对地址），已排除出路线');
+        var valid = customers.filter(function(c) { return c.coded; });
+        if (!valid.length) { toast('没有可用的客户坐标'); return; }
+
+        // 3. 智能排序（可选）
+        var order = valid.slice();
+        if (useSort) {
+          var pts = order.map(function(c, i) { return { idx: i, lng: c.lng, lat: c.lat }; });
+          var startPt = null;
+          if (startLng != null) startPt = { lng: startLng, lat: startLat };
+          var seq = tspNearest(pts, startPt);
+          order = seq.map(function(p) { return valid[p.idx]; });
+        }
+        planned = order;
+        renderList();
+
+        // 4. 逐段驾车规划
+        var routePath = [];
+        var totalDist = 0, totalTime = 0;
+        var segs = [];
+        var origin = (startLng != null) ? { lng: startLng, lat: startLat, name: '起点' } : null;
+        var stops = origin ? [origin].concat(order) : order;
+
+        btn.innerHTML = '规划路线中…'; btn2.innerHTML = '规划路线中…';
+
+        var run = function(i) {
+          if (i >= stops.length - 1) {
+            // 完成
+            if (routePath.length > 1) {
+              routeLayer = new AMap.Polyline({
+                path: routePath,
+                strokeColor: '#1E6FE0',
+                strokeWeight: 7,
+                strokeOpacity: 0.85,
+                strokeStyle: 'solid',
+                lineJoin: 'round',
+                lineCap: 'round'
+              });
+              map.add(routeLayer);
+            }
+            // 直线总览线
+            var straight = stops.map(function(s) { return [s.lng, s.lat]; });
+            lineLayer = new AMap.Polyline({
+              path: straight,
+              strokeColor: '#0D9488',
+              strokeWeight: 3,
+              strokeOpacity: 0.55,
+              strokeStyle: 'dashed',
+              strokeDasharray: [6, 8]
+            });
+            map.add(lineLayer);
+
+            stats.dist = totalDist / 1000;
+            stats.time = Math.round(totalTime / 60);
+            renderRouteSummary();
+            renderAll();
+            toast('路线规划完成');
+            btn.disabled = false; btn2.disabled = false;
+            btn.innerHTML = '重新规划'; btn2.innerHTML = '重新规划';
+            return;
+          }
+          driveBetween(stops[i], stops[i + 1]).then(function(route) {
+            route.steps.forEach(function(step) {
+              if (step.path && step.path.length) {
+                step.path.forEach(function(p) { routePath.push([p.lng, p.lat]); });
+              }
+            });
+            totalDist += route.distance || 0;
+            totalTime += route.time || 0;
+            run(i + 1);
+          }).catch(function() {
+            // 该段规划失败，直线连接
+            routePath.push([stops[i].lng, stops[i].lat]);
+            routePath.push([stops[i + 1].lng, stops[i + 1].lat]);
+            totalDist += haversine(stops[i], stops[i + 1]) * 1000;
+            totalTime += haversine(stops[i], stops[i + 1]) * 1000 / 1000 * 1.8 * 60;
+            run(i + 1);
+          });
+        };
+        run(0);
+      });
+    });
+  }
+
+  /* ========== 导出/导入 ========== */
+  function exportData() {
+    var data = { start: startAddr, customers: customers, exportedAt: new Date().toISOString() };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '拜访客户数据_' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('已导出备份文件');
+  }
+  function importData(file) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      try {
+        var data = JSON.parse(reader.result);
+        if (data.start) { startAddr = data.start; $('startAddr').value = startAddr; }
+        if (Array.isArray(data.customers)) {
+          data.customers.forEach(function(c) {
+            if (!c.address) return;
+            var dup = customers.some(function(x) { return x.address === c.address; });
+            if (!dup) customers.push({
+              id: 'c' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+              name: c.name || '',
+              address: c.address,
+              lng: c.lng || null, lat: c.lat || null,
+              coded: !!(c.lng && c.lat)
+            });
+          });
+          save(); renderList();
+          toast('导入成功：' + data.customers.length + ' 条地址');
+        }
+      } catch(e) { toast('导入失败：文件格式不正确'); }
+    };
+    reader.readAsText(file);
+  }
+
+  /* ========== 弹窗 ========== */
+  var modal = $('settingsModal');
+  function openModal() {
+    $('amapKey').value = localStorage.getItem(LS.key) || '';
+    $('amapJscode').value = localStorage.getItem(LS.jscode) || '';
+    $('keyMsg').textContent = '';
+    modal.classList.add('show');
+  }
+  function closeModal() { modal.classList.remove('show'); }
+
+  /* ========== 事件绑定 ========== */
+  $('settingsBtn').addEventListener('click', openModal);
+  $('maskSetupBtn').addEventListener('click', openModal);
+  $('closeModalBtn').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+  $('saveKeyBtn').addEventListener('click', function() {
+    var key = $('amapKey').value.trim();
+    var jscode = $('amapJscode').value.trim();
+    if (!key) { $('keyMsg').className = 'm-msg err'; $('keyMsg').textContent = '请填写高德地图 Key'; return; }
+    localStorage.setItem(LS.key, key);
+    localStorage.setItem(LS.jscode, jscode);
+    $('keyMsg').className = 'm-msg ok';
+    $('keyMsg').textContent = '已保存，正在加载地图…';
+    closeModal();
+    loadAMap(key, jscode);
+  });
+
+  $('addBtn').addEventListener('click', function() {
+    var n = addCustomers($('addrInput').value);
+    if (n) { $('addrInput').value = ''; toast('已添加 ' + n + ' 位客户'); }
+    else toast('未添加：地址为空或已存在');
+  });
+  $('demoBtn').addEventListener('click', function() {
+    var demo = '王建国|浙江省杭州市西湖区文三路478号华星时代广场\n' +
+      '李美玲|浙江省杭州市拱墅区莫干山路100号耀江国际大厦\n' +
+      '陈志强|浙江省杭州市滨江区江南大道228号星光国际广场\n' +
+      '赵丽娟|浙江省杭州市上城区解放路138号\n' +
+      '周德福|浙江省杭州市余杭区文一西路998号海创园';
+    addCustomers(demo);
+    toast('已填入 5 个示例客户');
+  });
+  $('clearBtn').addEventListener('click', function() {
+    if (!customers.length) return;
+    if (confirm('确定清空全部客户地址吗？')) {
+      customers = []; planned = [];
+      save(); renderList(); renderRouteSummary();
+      if (map) renderAll();
+      toast('已清空');
+    }
+  });
+
+  $('customerList').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    var act = btn.getAttribute('data-act');
+    var id = btn.getAttribute('data-id');
+    if (act === 'del') delCustomer(id);
+    else if (act === 'up') moveCustomer(id, -1);
+    else if (act === 'down') moveCustomer(id, 1);
+  });
+
+  $('startAddr').addEventListener('change', function() {
+    startAddr = this.value.trim();
+    save();
+    startLng = null; startLat = null;
+  });
+
+  $('planBtn').addEventListener('click', function() { planRoute(true); });
+  $('planBtn2').addEventListener('click', function() { planRoute(true); });
+  $('sortBtn').addEventListener('click', function() {
+    if (!customers.length) { toast('请先添加客户'); return; }
+    if (!amapReady) { toast('需加载地图后使用智能排序'); return; }
+    planRoute(true);
+  });
+  $('fitBtn').addEventListener('click', function() {
+    if (map && markers.length) map.setFitView(markers, false, [40, 40, 40, 40]);
+  });
+
+  $('exportBtn').addEventListener('click', exportData);
+  $('importBtn').addEventListener('click', function() { $('importFile').click(); });
+  $('importFile').addEventListener('change', function() {
+    if (this.files && this.files[0]) importData(this.files[0]);
+    this.value = '';
+  });
+  $('printBtn').addEventListener('click', function() { window.print(); });
+  $('printBtn2').addEventListener('click', function() { window.print(); });
+  $('maskListBtn').addEventListener('click', function() {
+    if (window.innerWidth <= 900) switchTab('list');
+    else $('panelList').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  /* ===== 移动端 Tab ===== */
+  function switchTab(name) {
+    var isList = name === 'list';
+    $('panelList').classList.toggle('show', isList);
+    $('panelMap').classList.toggle('show', !isList);
+    $('tabList').classList.toggle('active', isList);
+    $('tabMap').classList.toggle('active', !isList);
+    if (!isList && map) setTimeout(function() { map.resize(); }, 120);
+  }
+  $('tabList').addEventListener('click', function() { switchTab('list'); });
+  $('tabMap').addEventListener('click', function() { switchTab('map'); });
+
+  /* ========== 初始化 ========== */
+  load();
+  renderList();
+  renderRouteSummary();
+
+  var savedKey = localStorage.getItem(LS.key);
+  if (savedKey) {
+    var jscode = localStorage.getItem(LS.jscode) || '';
+    loadAMap(savedKey, jscode);
+  } else {
+    setMask(true, '启用地图，一键规划拜访路线', '填写客户地址后，点击「规划路线」，系统将自动计算最优拜访顺序并在地图上生成驾车路线。', true);
+  }
+
+  // 键盘 Enter 快捷添加
+  $('addrInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      $('addBtn').click();
+    }
+  });
+
+  // 提示：Ctrl+Enter 快捷添加
+  $('addrInput').setAttribute('placeholder', $('addrInput').getAttribute('placeholder') + ' （Ctrl+Enter 快捷添加）');
+})();
+</script>
+
+</body>
+</html>
