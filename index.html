@@ -389,6 +389,7 @@ input, textarea, select { font-family: inherit; }
         </button>
         <button class="btn" id="sortBtn">智能排序</button>
         <button class="btn" id="fitBtn">全览</button>
+        <button class="btn" id="resetVisitBtn">重置拜访</button>
       </div>
       <div class="map-status" id="mapStatus" style="display:none">
         未规划 · 共 <b id="stCount">0</b> 个客户点
@@ -586,6 +587,23 @@ input, textarea, select { font-family: inherit; }
     if (lineLayer) { map && map.remove(lineLayer); lineLayer = null; }
     if (routeLayer) { map && map.remove(routeLayer); routeLayer = null; }
   }
+  function completeVisit(id) {
+    var c = customers.filter(function(x) { return x.id === id; })[0];
+    if (!c) return;
+    if (!confirm('确认已完成对「' + (c.name || '客户') + '」的拜访？\n完成后该点将从地图消失')) return;
+    c.visited = true;
+    save();
+    renderList();
+    renderAll();
+    toast('已标记拜访完成：' + (c.name || '客户'));
+  }
+  function resetVisits() {
+    customers.forEach(function(c) { c.visited = false; });
+    save();
+    renderList();
+    renderAll();
+    toast('已重置全部拜访状态');
+  }
   function renderAll() {
     if (!map) return;
     clearLayers();
@@ -593,16 +611,18 @@ input, textarea, select { font-family: inherit; }
     var lngs = [], lats = [];
     planned.forEach(function(c, i) {
       if (!c.coded || c.lng == null) return;
+      if (c.visited) return;
       var isStart = false;
-      var content = '<div style="background:#fff;border:2px solid var(--primary);color:var(--primary-dark);' +
-        'border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;' +
-        'font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.15)">' + (i + 1) + '</div>';
+      var content = '<div style="background:var(--primary);color:#fff;border:2.5px solid #fff;border-radius:50%;' +
+        'width:34px;height:34px;display:flex;align-items:center;justify-content:center;' +
+        'font-size:16px;font-weight:800;box-shadow:0 3px 9px rgba(0,0,0,0.4)">' + (i + 1) + '</div>';
       var marker = new AMap.Marker({
         position: [c.lng, c.lat],
         content: content,
-        offset: new AMap.Pixel(-13, -13),
+        offset: new AMap.Pixel(-17, -17),
         title: (i + 1) + '. ' + c.name + ' ' + c.address
       });
+      marker.on('click', function() { completeVisit(c.id); });
       map.add(marker);
       markers.push(marker);
       lngs.push(c.lng); lats.push(c.lat);
@@ -653,9 +673,10 @@ input, textarea, select { font-family: inherit; }
         '<div class="c-main">' +
           '<div class="c-name">' + esc(c.name || '客户') + '</div>' +
           '<div class="c-addr">' + esc(c.address) + '</div>' +
-          '<div class="c-meta">' + (c.coded ? '已定位' : '待定位') + (pos > -1 ? ' · 第 ' + (pos + 1) + ' 站' : '') + '</div>' +
+          '<div class="c-meta">' + (c.visited ? '<span style="color:#16a34a;font-weight:700">✓ 已拜访</span>' : (c.coded ? '已定位' : '待定位')) + (pos > -1 && !c.visited ? ' · 第 ' + (pos + 1) + ' 站' : '') + '</div>' +
         '</div>' +
         '<div class="c-ops">' +
+          (c.visited ? '' : '<button class="mini-btn done-btn" data-act="done" data-id="' + c.id + '" title="完成拜访"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>') +
           '<button class="mini-btn" data-act="up" data-id="' + c.id + '" title="上移"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>' +
           '<button class="mini-btn" data-act="down" data-id="' + c.id + '" title="下移"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
           '<button class="mini-btn del" data-act="del" data-id="' + c.id + '" title="删除"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>' +
@@ -1026,6 +1047,7 @@ input, textarea, select { font-family: inherit; }
     if (!btn) return;
     var act = btn.getAttribute('data-act');
     var id = btn.getAttribute('data-id');
+    if (act === 'done') { completeVisit(id); return; }
     if (act === 'del') delCustomer(id);
     else if (act === 'up') moveCustomer(id, -1);
     else if (act === 'down') moveCustomer(id, 1);
@@ -1044,7 +1066,8 @@ input, textarea, select { font-family: inherit; }
     if (!amapReady) { toast('需加载地图后使用智能排序'); return; }
     planRoute(true);
   });
-  $('fitBtn').addEventListener('click', function() {
+  $('resetVisitBtn').addEventListener('click', function() { resetVisits(); });
+    $('fitBtn').addEventListener('click', function() {
     if (map && markers.length) map.setFitView(markers, false, [40, 40, 40, 40]);
   });
 
