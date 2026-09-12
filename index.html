@@ -627,7 +627,7 @@ input, textarea, select { font-family: inherit; }
   }
   function updateStatus() {
     var codedCount = customers.filter(function(c) { return c.coded; }).length;
-    $('stCount').textContent = customers.length;
+    var stCountEl = $('stCount'); if (stCountEl) stCountEl.textContent = customers.length;
     $('countLabel').textContent = customers.length + ' 位';
     var msg = '共 ' + customers.length + ' 个客户点';
     if (codedCount < customers.length && customers.length > 0) {
