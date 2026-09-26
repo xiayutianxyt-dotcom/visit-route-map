@@ -57,6 +57,22 @@ input, textarea, select { font-family: inherit; }
 .brand-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.2; }
 .brand-sub { font-size: 11px; color: var(--text-3); font-weight: 400; }
 .top-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.top-actions .text-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 12px; font-size: 13px; font-weight: 600;
+  border-radius: 999px; border: 1.5px solid var(--border);
+  background: #fff; color: var(--text); cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+  white-space: nowrap;
+}
+.top-actions .text-btn:hover { border-color: var(--primary); color: var(--primary); background: #F4FAF8; }
+.history-list { max-height: 330px; overflow-y: auto; margin: 10px 0; display: flex; flex-direction: column; gap: 6px; }
+.history-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #FAFCFB; font-size: 12px; }
+.history-item .h-time { flex-shrink: 0; color: var(--text-2); font-variant-numeric: tabular-nums; width: 100px; }
+.history-item .h-main { min-width: 0; line-height: 1.5; flex: 1; }
+.history-item .restore-btn { background: var(--primary); color: #fff; flex-shrink: 0; margin-top: 2px; }
+.history-item .h-name { font-weight: 700; color: var(--text); }
+.history-empty { text-align: center; color: var(--text-3); font-size: 13px; padding: 26px 0; }
 .icon-btn {
   width: 38px; height: 38px;
   border: 1px solid var(--border);
@@ -110,6 +126,12 @@ input, textarea, select { font-family: inherit; }
 .start-input:focus, .addr-input:focus { outline: none; border-color: var(--primary); background: #fff; }
 .start-input::placeholder, .addr-input::placeholder { color: var(--text-3); }
 .addr-input { resize: vertical; min-height: 86px; line-height: 1.6; }
+.addr-row { display: flex; gap: 6px; margin-top: 6px; }
+.addr-row input { flex: 1; min-width: 0; }
+.addr-row .btn { flex-shrink: 0; padding: 10px 10px; font-size: 12px; }
+.pick-hint { margin-top: 8px; font-size: 12px; color: var(--text-2); background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 6px 9px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pick-hint .pick-cancel { margin-left: auto; background: none; border: none; color: #dc2626; cursor: pointer; font-size: 12px; font-weight: 600; padding: 2px 6px; }
+#pickBtn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .input-actions { display: flex; gap: 8px; margin-top: 8px; }
 .input-actions .btn { flex: 1; }
 
@@ -158,6 +180,7 @@ input, textarea, select { font-family: inherit; }
 .c-addr { font-size: 12px; color: var(--text-2); margin-top: 3px; line-height: 1.5; word-break: break-all; }
 .c-meta { font-size: 11px; color: var(--text-3); margin-top: 3px; }
 .c-ops { display: flex; gap: 4px; flex-shrink: 0; }
+.c-ops .visit-btn { background: var(--primary); color: #fff; }
 .mini-btn {
   width: 26px; height: 26px;
   border: none; background: transparent;
@@ -173,7 +196,18 @@ input, textarea, select { font-family: inherit; }
 
 /* ===== 地图面板 ===== */
 .map-wrap { position: relative; }
-#map { width: 100%; height: calc(100vh - 180px); min-height: 420px; background: #E8EEED; }
+.pick-bar {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 20; display: flex; align-items: center; gap: 8px;
+  background: #1E6FE0; color: #fff; border-radius: 999px;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 3px 10px rgba(30,111,224,.35);
+  max-width: 92%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pick-bar .pick-bar-cancel { background: rgba(255,255,255,.22); border: none; color: #fff; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer; flex-shrink: 0; }
+.pick-bar .pick-bar-confirm { background: #fff; border: none; color: #1E6FE0; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px; cursor: pointer; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+#map { width: 100%; height: calc(100vh - 168px); min-height: 440px; background: #E8EEED; }
+#panelMap.route-open #map { height: calc(100vh - 300px); min-height: 300px; }
 .map-mask {
   position: absolute; inset: 0; z-index: 5;
   background: rgba(242,245,244,0.94);
@@ -185,10 +219,25 @@ input, textarea, select { font-family: inherit; }
 .map-mask p { font-size: 13px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
 .map-mask .btn { display: inline-flex; margin: 0 4px 8px; }
 .map-mask .hint { font-size: 11px; color: var(--text-3); line-height: 1.7; }
-.map-tools {
-  position: absolute; top: 12px; left: 12px; z-index: 6;
-  display: flex; gap: 6px; flex-wrap: wrap;
+.map-panel {
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 10px 12px 12px;
 }
+.map-panel .map-tools {
+  position: static; z-index: auto;
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+}
+.map-panel .map-tools2 {
+  position: static; z-index: auto;
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  background: transparent; border: none; padding: 0; box-shadow: none;
+  margin-top: 8px;
+}
+.map-panel .map-status {
+  position: static; z-index: auto;
+  margin-left: auto; border: none; box-shadow: none; background: transparent; padding: 0;
+}
+.map-panel .map-tools { position: static; top: auto; left: auto; }
 .map-tools .btn { background: #fff; border-color: var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 .map-tools .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
 .map-tools2 {
@@ -220,9 +269,14 @@ input, textarea, select { font-family: inherit; }
 .map-status b { color: var(--primary-dark); }
 
 /* ===== 路线摘要 ===== */
-.route-summary { border-top: 1px solid var(--border); padding: 10px 12px; background: #fff; }
-.route-summary .rs-title { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-.rs-list { max-height: 150px; overflow-y: auto; margin-bottom: 8px; }
+.route-summary { padding: 6px 0 0; background: transparent; }
+.route-summary .rs-title { font-size: 12px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; padding: 2px 0; }
+.route-summary .rs-title .rs-arrow { display: inline-block; transition: transform .2s; margin-right: 4px; vertical-align: -2px; color: var(--primary); }
+.route-summary.open .rs-title .rs-arrow { transform: rotate(90deg); }
+.route-summary .rs-body { display: none; }
+.route-summary.open .rs-body { display: block; }
+.route-summary.open .rs-title { margin-bottom: 6px; }
+.rs-list { max-height: 96px; overflow-y: auto; margin-bottom: 6px; }
 .rs-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; border-bottom: 1px dashed #EDF1F0; }
 .rs-item:last-child { border-bottom: none; }
 .rs-no {
@@ -234,6 +288,8 @@ input, textarea, select { font-family: inherit; }
 }
 .rs-item .rs-name { font-weight: 600; color: var(--text); }
 .rs-item .rs-addr { color: var(--text-3); flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 6px; }
+.rs-item .rs-ops { display: flex; gap: 3px; flex-shrink: 0; margin-left: 6px; }
+.rs-item .rs-ops .mini-btn { padding: 3px 5px; }
 .rs-stats { display: flex; gap: 8px; margin-bottom: 8px; }
 .rs-stat { flex: 1; background: #F6F9F8; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
 .rs-stat .v { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
@@ -318,6 +374,8 @@ input, textarea, select { font-family: inherit; }
 @media print {
   body { background: #fff; }
   .topbar, .tabbar, .map-wrap, .panel-left, .map-tools, .map-status, .rs-actions, .map-mask { display: none !important; }
+  .map-panel { border: none; padding: 0; }
+  .map-panel .map-tools2, .map-panel .map-status { display: none !important; }
   .app { display: block; padding: 0; }
   .print-only { display: block !important; }
   .rs-list { max-height: none; }
@@ -331,7 +389,11 @@ input, textarea, select { font-family: inherit; }
   .panel-left.show { display: flex; }
   .panel-right { display: none; }
   .panel-right.show { display: block; }
-  #map { height: calc(100vh - 250px); min-height: 380px; }
+  #map { height: calc(100vh - 170px); min-height: 300px; }
+  #panelMap.route-open #map { height: calc(100vh - 310px); }
+  .map-panel { padding: 8px 10px 10px; }
+  .map-panel .map-tools2 { margin-top: 6px; }
+  .rs-list { max-height: 64px; }
   .tabbar { display: flex; }
   .customer-list { max-height: none; }
   .rs-list { max-height: 110px; }
@@ -352,6 +414,18 @@ input, textarea, select { font-family: inherit; }
     </div>
   </div>
   <div class="top-actions">
+    <button class="text-btn" id="historyBtn" title="查看历史拜访记录">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      历史拜访
+    </button>
+    <button class="text-btn" id="exportBtn" title="导出备份（下载 JSON）">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      导出备份
+    </button>
+    <button class="text-btn" id="recycleBtn" title="回收站（恢复被删除的客户）">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+      回收站
+    </button>
     <button class="icon-btn" id="settingsBtn" title="地图设置" aria-label="地图设置">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </button>
@@ -367,14 +441,21 @@ input, textarea, select { font-family: inherit; }
       <input type="text" class="start-input" id="startAddr" placeholder="如：浙江省杭州市西湖区文三路138号（公司地址）">
     </div>
     <div class="input-box">
-      <label class="field-label">批量添加客户（每行一个，格式：姓名|地址 或 仅地址）</label>
-      <textarea class="addr-input" id="addrInput" placeholder="张三|浙江省杭州市西湖区文三路138号&#10;李四|浙江省杭州市拱墅区莫干山路100号"></textarea>
+      <label class="field-label">新增客户（姓名 + 地址，可地图选点）</label>
+      <input type="text" class="start-input" id="addName" placeholder="客户姓名（可选）">
+      <div class="addr-row">
+        <input type="text" class="start-input" id="addAddr" placeholder="客户地址，如：浙江省杭州市西湖区文三路138号">
+        <button class="btn btn-ghost" id="pickBtn" title="点击地图选择客户位置">地图选点</button>
+      </div>
+      <div class="pick-hint" id="pickHint" style="display:none">
+        <span id="pickAddr">请在地图上点击客户所在位置</span>
+        <button class="pick-cancel" id="pickCancel">取消</button>
+      </div>
       <div class="input-actions">
         <button class="btn btn-primary" id="addBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           添加客户
         </button>
-        <button class="btn btn-ghost" id="demoBtn">填入示例</button>
       </div>
     </div>
     <div class="panel-head">
@@ -385,28 +466,16 @@ input, textarea, select { font-family: inherit; }
       <button class="btn btn-ghost btn-sm" id="clearBtn">清空</button>
     </div>
     <div class="customer-list" id="customerList"></div>
-    <div class="list-foot">
-      <button class="btn btn-ghost btn-sm" id="importBtn">导入数据</button>
-      <button class="btn btn-ghost btn-sm" id="exportBtn">导出备份</button>
-      <button class="btn btn-ghost btn-sm" id="printBtn">打印清单</button>
-    </div>
-    <input type="file" id="importFile" accept=".json" style="display:none">
   </section>
 
   <!-- ===== 右：地图 ===== -->
   <section class="panel panel-right" id="panelMap">
-    <div class="map-wrap">
-      <div id="map"></div>
+    <div class="map-panel">
       <div class="map-tools" id="mapTools" style="display:none">
         <button class="btn primary" id="planBtn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
           规划路线
         </button>
-        <button class="btn" id="sortBtn">智能排序</button>
-        <button class="btn" id="fitBtn">全览</button>
-        <button class="btn" id="resetVisitBtn">重置拜访</button>
-      </div>
-      <div class="map-tools2" id="mapTools2" style="display:none">
         <div class="map-nav-mode" id="mapNavMode">
           <button type="button" class="mode-tab active" data-mode="car">驾车</button>
           <button type="button" class="mode-tab" data-mode="bus">公交</button>
@@ -415,9 +484,39 @@ input, textarea, select { font-family: inherit; }
         </div>
         <button class="btn" id="mapExpandBtn">放大地图</button>
         <button class="btn primary" id="mapNavLinkBtn">高德导航</button>
+        <div class="map-status" id="mapStatus" style="display:none">
+          未规划 · 共 <b id="stCount">0</b> 个客户点
+        </div>
       </div>
-      <div class="map-status" id="mapStatus" style="display:none">
-        未规划 · 共 <b id="stCount">0</b> 个客户点
+
+      <!-- 路线摘要（可折叠，默认收起） -->
+      <div class="route-summary" id="routeSummary">
+        <div class="rs-title" id="rsTitle">
+          <span>
+            <svg class="rs-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            拜访顺序
+          </span>
+          <span id="rsMeta" style="color:var(--text-3);font-weight:400"></span>
+        </div>
+        <div class="rs-body">
+          <div class="rs-list" id="rsList">
+            <div class="list-empty" style="padding:16px">暂无路线，点击上方「规划路线」生成拜访顺序</div>
+          </div>
+          <div class="rs-stats" id="rsStats" style="display:none">
+            <div class="rs-stat"><div class="v" id="rsDist">0</div><div class="k">总里程 (km)</div></div>
+            <div class="rs-stat"><div class="v" id="rsTime">0</div><div class="k">预计驾驶 (min)</div></div>
+            <div class="rs-stat"><div class="v" id="rsStops">0</div><div class="k">拜访点</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="pick-bar" id="pickBar" style="display:none">
+        <span id="pickBarText">选点模式：请在地图上点击客户位置</span>
+        <button class="pick-bar-confirm" id="pickBarConfirm" style="display:none">确认位置</button>
+        <button class="pick-bar-cancel" id="pickBarCancel">取消</button>
       </div>
       <div class="map-mask" id="mapMask">
         <div class="map-mask-inner">
@@ -430,31 +529,9 @@ input, textarea, select { font-family: inherit; }
       </div>
     </div>
 
-    <!-- 路线摘要 -->
-    <div class="route-summary">
-      <div class="rs-title">
-        <span>拜访顺序</span>
-        <span id="rsMeta" style="color:var(--text-3);font-weight:400"></span>
-      </div>
-      <div class="rs-list" id="rsList">
-        <div class="list-empty" style="padding:16px">暂无路线，点击上方「规划路线」生成拜访顺序</div>
-      </div>
-      <div class="rs-stats" id="rsStats" style="display:none">
-        <div class="rs-stat"><div class="v" id="rsDist">0</div><div class="k">总里程 (km)</div></div>
-        <div class="rs-stat"><div class="v" id="rsTime">0</div><div class="k">预计驾驶 (min)</div></div>
-        <div class="rs-stat"><div class="v" id="rsStops">0</div><div class="k">拜访点</div></div>
-      </div>
-      <div class="rs-actions">
-        <button class="btn btn-primary" id="planBtn2">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
-          规划路线
-        </button>
-        <button class="btn btn-ghost" id="printBtn2">打印拜访清单</button>
-      </div>
-      <!-- 打印专用 -->
-      <div class="print-only">
-        <div id="printList" style="padding:10px 0"></div>
-      </div>
+    <!-- 打印专用 -->
+    <div class="print-only">
+      <div id="printList" style="padding:10px 0"></div>
     </div>
   </section>
 </main>
@@ -502,6 +579,32 @@ input, textarea, select { font-family: inherit; }
   </div>
 </div>
 
+<!-- ===== 回收站弹窗 ===== -->
+<div class="modal-mask" id="recycleModal">
+  <div class="modal">
+    <h3>回收站</h3>
+    <p class="m-sub">被删除的客户暂存在这里，可恢复或清空。</p>
+    <div class="history-list" id="recycleList"></div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" id="clearRecycleBtn">清空回收站</button>
+      <button class="btn btn-primary" id="closeRecycleBtn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 历史拜访弹窗 ===== -->
+<div class="modal-mask" id="historyModal">
+  <div class="modal">
+    <h3>历史拜访</h3>
+    <p class="m-sub">自动记录已完成拜访的客户，最多保留 100 条。</p>
+    <div class="history-list" id="historyList"></div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" id="clearHistoryBtn">清空历史</button>
+      <button class="btn btn-primary" id="closeHistoryBtn">关闭</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -513,12 +616,17 @@ input, textarea, select { font-family: inherit; }
     customers: 'mc_visit_customers',
     start: 'mc_visit_start',
     key: 'mc_visit_amap_key',
-    jscode: 'mc_visit_amap_jscode'
+    jscode: 'mc_visit_amap_jscode',
+    history: 'mc_visit_history',
+    recycle: 'mc_visit_recycle'
   };
   var customers = [];   // {id, name, address, lng, lat, coded}
+  var visitHistory = []; // {name, address, t}
+  var recycled = [];     // {name, address, lng, lat, coded, t}
   var startAddr = '';
   var map = null, amapReady = false, amapLoading = false, keySaved = false;
   var markers = [], lineLayer = null, routeLayer = null;
+  var startGeocoding = false;
   var navMode = 'car';
   var planned = [];     // 排序后的 {id, name, address, lng, lat}
   var stats = { dist: 0, time: 0 };
@@ -546,6 +654,8 @@ input, textarea, select { font-family: inherit; }
   function load() {
     try {
       customers = JSON.parse(localStorage.getItem(LS.customers) || '[]') || [];
+      visitHistory = JSON.parse(localStorage.getItem(LS.history) || '[]') || [];
+      recycled = JSON.parse(localStorage.getItem(LS.recycle) || '[]') || [];
       startAddr = localStorage.getItem(LS.start) || '';
     } catch(e) { customers = []; startAddr = ''; }
     $('startAddr').value = startAddr;
@@ -578,7 +688,6 @@ input, textarea, select { font-family: inherit; }
         setMask(false);
         initMap();
         $('mapTools').style.display = 'flex';
-        $('mapTools2').style.display = 'flex';
         $('mapStatus').style.display = 'block';
         toast('地图已加载');
       });
@@ -600,12 +709,19 @@ input, textarea, select { font-family: inherit; }
 
   /* ========== 地图 ========== */
   function initMap() {
+    if (map) { if (map.resize) map.resize(); renderAll(); return; }
+    var _el = document.getElementById('map');
+    var _w = _el ? _el.offsetWidth : 0;
+    var _h = _el ? _el.offsetHeight : 0;
+    if (_w < 50 || _h < 50) { setTimeout(initMap, 250); return; }
     map = new AMap.Map('map', {
       zoom: 11,
       center: [120.1536, 30.2875],  // 杭州
       mapStyle: 'amap://styles/fresh',
       viewMode: '2D'
     });
+    map.on('click', onMapPick);
+    setTimeout(function () { if (map && map.resize) map.resize(); }, 200);
     renderAll();
   }
   function clearLayers() {
@@ -613,13 +729,65 @@ input, textarea, select { font-family: inherit; }
     markers = [];
     if (lineLayer) { map && map.remove(lineLayer); lineLayer = null; }
     if (routeLayer) { map && map.remove(routeLayer); routeLayer = null; }
+    if (_visitFocusMarker) { map && map.remove(_visitFocusMarker); _visitFocusMarker = null; }
   }
+  var _visitFocusMarker = null;
+  function goVisit(id) {
+    var c = customers.filter(function(x) { return x.id === id; })[0];
+    if (!c) return;
+    if (map) switchTab('map'); else if ($('tabMap')) $('tabMap').click();
+    var inPlan = planned.some(function(p) { return p.id === id; });
+    function addToPlan() {
+      if (!inPlan) {
+        planned.push(c);
+        renderList();
+        renderRouteSummary();
+      }
+      if (startAddr.trim() && startLng == null && !startGeocoding) {
+        startGeocoding = true;
+        geocodeStart(startAddr.trim()).then(function() {
+          startGeocoding = false;
+          renderAll();
+        }).catch(function() { startGeocoding = false; });
+      }
+      renderAll();
+      focusVisit(c);
+    }
+    if (!c.coded) {
+      toast('正在定位「' + (c.name || '客户') + '」…');
+      geocodeOne(c).then(function() {
+        save(); renderList();
+        addToPlan();
+      }).catch(function() {
+        toast('该地址未能定位，请用「地图选点」或核对地址');
+      });
+    } else {
+      addToPlan();
+    }
+  }
+  function focusVisit(c) {
+    if (!map) return;
+    if (_visitFocusMarker) { map.remove(_visitFocusMarker); }
+    _visitFocusMarker = new AMap.Marker({
+      position: [c.lng, c.lat],
+      content: '<div style="background:#EA580C;color:#fff;border-radius:50%;width:34px;height:34px;line-height:34px;text-align:center;font-size:15px;font-weight:800;border:2.5px solid #fff;box-shadow:0 3px 9px rgba(0,0,0,.4)">访</div>',
+      offset: new AMap.Pixel(-17, -47),
+      title: (c.name || '客户') + ' ' + c.address
+    });
+    map.add(_visitFocusMarker);
+    map.setZoomAndCenter(14, new AMap.LngLat(c.lng, c.lat));
+    toast('拜访：' + (c.name || '客户'));
+  }
+
   function completeVisit(id) {
     var c = customers.filter(function(x) { return x.id === id; })[0];
     if (!c) return;
     if (!confirm('确认已完成对「' + (c.name || '客户') + '」的拜访？\n完成后该点将从地图消失')) return;
     c.visited = true;
     save();
+    visitHistory.unshift({ name: c.name || '未命名客户', address: c.address, t: Date.now() });
+    if (visitHistory.length > 100) visitHistory.length = 100;
+    localStorage.setItem(LS.history, JSON.stringify(visitHistory));
     renderList();
     renderAll();
     toast('已标记拜访完成：' + (c.name || '客户'));
@@ -636,17 +804,20 @@ input, textarea, select { font-family: inherit; }
     clearLayers();
     var hasStart = !!startAddr && !!startLng;
     var lngs = [], lats = [];
+    var usedPos = {};
     planned.forEach(function(c, i) {
       if (!c.coded || c.lng == null) return;
       if (c.visited) return;
-      var isStart = false;
+      var pKey = Math.round(c.lng * 1000) + ',' + Math.round(c.lat * 1000);
+      var dupN = usedPos[pKey] = (usedPos[pKey] || 0) + 1;
       var content = '<div style="background:var(--primary);color:#fff;border:2.5px solid #fff;border-radius:50%;' +
         'width:34px;height:34px;display:flex;align-items:center;justify-content:center;' +
         'font-size:16px;font-weight:800;box-shadow:0 3px 9px rgba(0,0,0,0.4)">' + (i + 1) + '</div>';
+      var dy = -17 - (dupN - 1) * 30;
       var marker = new AMap.Marker({
         position: [c.lng, c.lat],
         content: content,
-        offset: new AMap.Pixel(-17, -17),
+        offset: new AMap.Pixel(-17, dy),
         title: (i + 1) + '. ' + c.name + ' ' + c.address
       });
       marker.on('click', function() { completeVisit(c.id); });
@@ -655,12 +826,15 @@ input, textarea, select { font-family: inherit; }
       lngs.push(c.lng); lats.push(c.lat);
     });
     if (startLng != null) {
+      var spKey = Math.round(startLng * 1000) + ',' + Math.round(startLat * 1000);
+      var sDupN = usedPos[spKey] = (usedPos[spKey] || 0) + 1;
+      var sdy = -15 - (sDupN - 1) * 30;
       var sm = new AMap.Marker({
         position: [startLng, startLat],
         content: '<div style="background:var(--accent);border:2px solid #fff;border-radius:50%;width:30px;height:30px;' +
           'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;' +
           'box-shadow:0 2px 6px rgba(0,0,0,0.2)">起</div>',
-        offset: new AMap.Pixel(-15, -15),
+        offset: new AMap.Pixel(-15, sdy),
         title: '起点 ' + startAddr
       });
       map.add(sm);
@@ -703,6 +877,7 @@ input, textarea, select { font-family: inherit; }
           '<div class="c-meta">' + (c.visited ? '<span style="color:#16a34a;font-weight:700">✓ 已拜访</span>' : (c.coded ? '已定位' : '待定位')) + (pos > -1 && !c.visited ? ' · 第 ' + (pos + 1) + ' 站' : '') + '</div>' +
         '</div>' +
         '<div class="c-ops">' +
+          '<button class="mini-btn visit-btn" data-act="visit" data-id="' + c.id + '" title="去拜访该客户"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"></path><path d="M3 11h18v6h-2v1a1 1 0 0 1-2 0v-1H7v1a1 1 0 0 1-2 0v-1H3z"></path><line x1="7" y1="14" x2="7.01" y2="14"></line><line x1="17" y1="14" x2="17.01" y2="14"></line></svg></button>' +
           (c.visited ? '' : '<button class="mini-btn done-btn" data-act="done" data-id="' + c.id + '" title="完成拜访"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>') +
           '<button class="mini-btn" data-act="up" data-id="' + c.id + '" title="上移"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>' +
           '<button class="mini-btn" data-act="down" data-id="' + c.id + '" title="下移"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
@@ -725,7 +900,11 @@ input, textarea, select { font-family: inherit; }
     planned.forEach(function(c, i) {
       html += '<div class="rs-item"><div class="rs-no">' + (i + 1) + '</div>' +
         '<span class="rs-name">' + esc(c.name || '客户' + (i + 1)) + '</span>' +
-        '<span class="rs-addr">' + esc(c.address) + '</span></div>';
+        '<span class="rs-addr">' + esc(c.address) + '</span>' +
+        '<span class="rs-ops">' +
+          '<button class="mini-btn" data-rp="up" data-id="' + c.id + '" title="上移"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>' +
+          '<button class="mini-btn" data-rp="down" data-id="' + c.id + '" title="下移"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
+        '</span></div>';
     });
     list.innerHTML = html;
     $('rsStats').style.display = 'flex';
@@ -770,11 +949,98 @@ input, textarea, select { font-family: inherit; }
     if (added) { save(); renderList(); }
     return added;
   }
+  function addOneCustomer(name, addr, lng, lat) {
+    var dup = customers.some(function(c) { return c.address === addr; });
+    if (dup) return null;
+    var c = {
+      id: 'c' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+      name: name,
+      address: addr,
+      lng: (lng != null ? lng : null),
+      lat: (lat != null ? lat : null),
+      coded: !!(lng != null && lat != null)
+    };
+    customers.push(c);
+    save(); renderList();
+    return c;
+  }
+
+  /* ========== 地图选点 ========== */
+  var _pickMode = false, _pickLng = null, _pickLat = null, _pickMarker = null, _pickGeocoder = null;
+  function enterPick() {
+    if (!map) { toast('地图未加载：请先点右上角设置，配置高德 Key'); return; }
+    _pickMode = true;
+    $('pickBtn').classList.add('active');
+    $('pickBtn').textContent = '点地图选位置…';
+    $('pickHint').style.display = 'flex';
+    $('pickAddr').textContent = '请在地图上点击客户所在位置';
+    map.setDefaultCursor('crosshair');
+    var bar = $('pickBar');
+    bar.style.display = 'flex';
+    $('pickBarText').textContent = '选点模式：请在地图上点击客户位置';
+    if (window.innerWidth <= 900 && $('tabMap')) { $('tabMap').click(); }
+    toast('请在地图上点击客户所在位置');
+  }
+  function exitPick() {
+    _pickMode = false;
+    var pb = $('pickBtn');
+    if (pb) { pb.classList.remove('active'); pb.textContent = '地图选点'; }
+    var ph = $('pickHint'); if (ph) ph.style.display = 'none';
+    if (map) map.setDefaultCursor('');
+    var bar = $('pickBar');
+    if (bar) {
+      bar.style.display = 'none';
+      var cf = $('pickBarConfirm'); if (cf) cf.style.display = 'none';
+    }
+    if (_pickMarker) { map.remove(_pickMarker); _pickMarker = null; }
+  }
+  function clearPick() {
+    _pickLng = null; _pickLat = null;
+    if (_pickMarker) { map.remove(_pickMarker); _pickMarker = null; }
+  }
+  var _pendingPickAddr = '';
+  function onMapPick(e) {
+    if (!_pickMode) return;
+    _pickLng = e.lnglat.lng; _pickLat = e.lnglat.lat;
+    if (!_pickMarker) {
+      _pickMarker = new AMap.Marker({
+        position: [_pickLng, _pickLat],
+        content: '<div style="background:#1E6FE0;color:#fff;border-radius:50%;width:30px;height:30px;line-height:30px;text-align:center;font-size:14px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">选</div>',
+        offset: new AMap.Pixel(-15, -15),
+        zIndex: 999
+      });
+      map.add(_pickMarker);
+    } else {
+      _pickMarker.setPosition([_pickLng, _pickLat]);
+    }
+    $('pickBarConfirm').style.display = 'inline-block';
+    $('pickBarText').textContent = '已选坐标，可继续点地图调整…';
+    if (_pickGeocoder == null) _pickGeocoder = new AMap.Geocoder({});
+    _pickGeocoder.getAddress([_pickLng, _pickLat], function(status, result) {
+      if (_pickMode && status === 'complete' && result.regeocode) {
+        var a = result.regeocode.formattedAddress || '';
+        _pendingPickAddr = a;
+        $('pickAddr').textContent = '已选：' + a;
+        $('pickBarText').textContent = '已选：' + a + '，可继续调整或点「确认位置」';
+      } else {
+        _pendingPickAddr = '';
+        $('pickBarText').textContent = '已选坐标，未能反查地址，可继续调整';
+      }
+    });
+  }
+
   function delCustomer(id) {
-    customers = customers.filter(function(c) { return c.id !== id; });
+    var c = customers.filter(function(x) { return x.id === id; })[0];
+    if (!c) return;
+    if (!confirm('将「' + (c.name || '客户') + '」移入回收站？')) return;
+    customers = customers.filter(function(x) { return x.id !== id; });
     planned = planned.filter(function(p) { return p.id !== id; });
+    recycled.unshift({ name: c.name || '未命名客户', address: c.address, lng: c.lng || null, lat: c.lat || null, coded: !!(c.lng && c.lat), t: Date.now() });
+    if (recycled.length > 100) recycled.length = 100;
+    localStorage.setItem(LS.recycle, JSON.stringify(recycled));
     save(); renderList(); renderRouteSummary();
     if (map) renderAll();
+    toast('已移入回收站：' + (c.name || '客户'));
   }
   function moveCustomer(id, dir) {
     var i = customers.findIndex(function(c) { return c.id === id; });
@@ -877,9 +1143,9 @@ input, textarea, select { font-family: inherit; }
       return;
     }
     if (!customers.length) { toast('请先添加客户地址'); return; }
-    var btn = $('planBtn'), btn2 = $('planBtn2');
-    btn.disabled = true; btn2.disabled = true;
-    btn.innerHTML = '定位中…'; btn2.innerHTML = '定位中…';
+    var btn = $('planBtn');
+    btn.disabled = true;
+    btn.innerHTML = '定位中…';
 
     // 1. 解析起点
     var startTask = Promise.resolve();
@@ -910,8 +1176,8 @@ input, textarea, select { font-family: inherit; }
         var valid = customers.filter(function(c) { return c.coded; });
         if (!valid.length) {
           toast('没有可用的客户坐标，请核对地址后重试');
-          btn.disabled = false; btn2.disabled = false;
-          btn.innerHTML = '重新规划'; btn2.innerHTML = '重新规划';
+          btn.disabled = false;
+          btn.innerHTML = '重新规划';
           return;
         }
 
@@ -934,7 +1200,7 @@ input, textarea, select { font-family: inherit; }
         var origin = (startLng != null) ? { lng: startLng, lat: startLat, name: '起点' } : null;
         var stops = origin ? [origin].concat(order) : order;
 
-        btn.innerHTML = '规划路线中…'; btn2.innerHTML = '规划路线中…';
+        btn.innerHTML = '规划路线中…';
 
         var run = function(i) {
           if (i >= stops.length - 1) {
@@ -968,8 +1234,8 @@ input, textarea, select { font-family: inherit; }
             renderRouteSummary();
             renderAll();
             toast('路线规划完成');
-            btn.disabled = false; btn2.disabled = false;
-            btn.innerHTML = '重新规划'; btn2.innerHTML = '重新规划';
+            btn.disabled = false;
+            btn.innerHTML = '重新规划';
             return;
           }
           routeBetween(stops[i], stops[i + 1]).then(function(route) {
@@ -994,8 +1260,8 @@ input, textarea, select { font-family: inherit; }
       });
     }, function() {
       toast('定位超时，请稍后重试');
-      btn.disabled = false; btn2.disabled = false;
-      btn.innerHTML = '重新规划'; btn2.innerHTML = '重新规划';
+      btn.disabled = false;
+      btn.innerHTML = '重新规划';
     });
   }
 
@@ -1012,31 +1278,6 @@ input, textarea, select { font-family: inherit; }
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast('已导出备份文件');
-  }
-  function importData(file) {
-    var reader = new FileReader();
-    reader.onload = function() {
-      try {
-        var data = JSON.parse(reader.result);
-        if (data.start) { startAddr = data.start; $('startAddr').value = startAddr; }
-        if (Array.isArray(data.customers)) {
-          data.customers.forEach(function(c) {
-            if (!c.address) return;
-            var dup = customers.some(function(x) { return x.address === c.address; });
-            if (!dup) customers.push({
-              id: 'c' + Date.now() + '_' + Math.floor(Math.random() * 10000),
-              name: c.name || '',
-              address: c.address,
-              lng: c.lng || null, lat: c.lat || null,
-              coded: !!(c.lng && c.lat)
-            });
-          });
-          save(); renderList();
-          toast('导入成功：' + data.customers.length + ' 条地址');
-        }
-      } catch(e) { toast('导入失败：文件格式不正确'); }
-    };
-    reader.readAsText(file);
   }
 
   /* ========== 弹窗 ========== */
@@ -1068,18 +1309,35 @@ input, textarea, select { font-family: inherit; }
   });
 
   $('addBtn').addEventListener('click', function() {
-    var n = addCustomers($('addrInput').value);
-    if (n) { $('addrInput').value = ''; toast('已添加 ' + n + ' 位客户'); }
-    else toast('未添加：地址为空或已存在');
+    var name = $('addName').value.trim();
+    var addr = $('addAddr').value.trim();
+    if (!addr) { toast('请填写客户地址，或用「地图选点」定位'); return; }
+    var c = addOneCustomer(name, addr, _pickLng, _pickLat);
+    if (c) {
+      $('addName').value = ''; $('addAddr').value = '';
+      clearPick();
+      exitPick();
+      toast('已添加客户：' + (name || '未命名'));
+    } else {
+      toast('未添加：该地址的客户已存在');
+    }
   });
-  $('demoBtn').addEventListener('click', function() {
-    var demo = '王建国|浙江省杭州市西湖区文三路478号华星时代广场\n' +
-      '李美玲|浙江省杭州市拱墅区莫干山路100号耀江国际大厦\n' +
-      '陈志强|浙江省杭州市滨江区江南大道228号星光国际广场\n' +
-      '赵丽娟|浙江省杭州市上城区解放路138号\n' +
-      '周德福|浙江省杭州市余杭区文一西路998号海创园';
-    addCustomers(demo);
-    toast('已填入 5 个示例客户');
+  $('pickBtn').addEventListener('click', function() {
+    if (_pickMode) { exitPick(); clearPick(); }
+    else enterPick();
+  });
+  $('pickCancel').addEventListener('click', function() {
+    exitPick(); clearPick(); $('addAddr').value = '';
+  });
+  $('pickBarConfirm').addEventListener('click', function() {
+    if (_pickLng == null) { toast('请先在地图上点击客户位置'); return; }
+    $('addAddr').value = _pendingPickAddr || (_pickLng.toFixed(5) + ', ' + _pickLat.toFixed(5));
+    exitPick(); clearPick();
+    toast('已确认位置，可添加客户');
+    if (window.innerWidth <= 900 && $('tabList')) { $('tabList').click(); }
+  });
+  $('pickBarCancel').addEventListener('click', function() {
+    exitPick(); clearPick(); $('addAddr').value = '';
   });
   $('clearBtn').addEventListener('click', function() {
     if (!customers.length) return;
@@ -1097,6 +1355,7 @@ input, textarea, select { font-family: inherit; }
     var act = btn.getAttribute('data-act');
     var id = btn.getAttribute('data-id');
     if (act === 'done') { completeVisit(id); return; }
+    if (act === 'visit') { goVisit(id); return; }
     if (act === 'del') delCustomer(id);
     else if (act === 'up') moveCustomer(id, -1);
     else if (act === 'down') moveCustomer(id, 1);
@@ -1109,15 +1368,30 @@ input, textarea, select { font-family: inherit; }
   });
 
   $('planBtn').addEventListener('click', function() { planRoute(true); });
-  $('planBtn2').addEventListener('click', function() { planRoute(true); });
-  $('sortBtn').addEventListener('click', function() {
-    if (!customers.length) { toast('请先添加客户'); return; }
-    if (!amapReady) { toast('需加载地图后使用智能排序'); return; }
-    planRoute(true);
+  $('rsTitle').addEventListener('click', function() {
+    var rs = $('routeSummary');
+    rs.classList.toggle('open');
+    $('panelMap').classList.toggle('route-open', rs.classList.contains('open'));
+    if (map) setTimeout(function() { map.resize(); }, 60);
   });
-  $('resetVisitBtn').addEventListener('click', function() { resetVisits(); });
-    $('fitBtn').addEventListener('click', function() {
-    if (map && markers.length) map.setFitView(markers, false, [40, 40, 40, 40]);
+  $('rsList').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-rp]');
+    if (!btn) return;
+    var dir = btn.getAttribute('data-rp') === 'up' ? -1 : 1;
+    var id = btn.getAttribute('data-id');
+    var i = planned.findIndex(function(p) { return p.id === id; });
+    if (i < 0) return;
+    var j = i + dir;
+    if (j < 0 || j >= planned.length) return;
+    var t = planned[i]; planned[i] = planned[j]; planned[j] = t;
+    renderRouteSummary();
+    renderList();
+    renderAll();
+    if (routeLayer) {
+      clearLayers();
+      renderAll();
+      toast('顺序已调整，请重新「规划路线」');
+    }
   });
 
   function navUrlFor(c) {
@@ -1155,13 +1429,79 @@ input, textarea, select { font-family: inherit; }
   });
 
   $('exportBtn').addEventListener('click', exportData);
-  $('importBtn').addEventListener('click', function() { $('importFile').click(); });
-  $('importFile').addEventListener('change', function() {
-    if (this.files && this.files[0]) importData(this.files[0]);
-    this.value = '';
+
+  /* ===== 历史拜访 ===== */
+  var hModal = $('historyModal');
+  function renderHistory() {
+    var el = $('historyList');
+    if (!visitHistory.length) {
+      el.innerHTML = '<div class="history-empty">暂无拜访记录，完成拜访后自动记录在此</div>';
+      return;
+    }
+    el.innerHTML = visitHistory.map(function(h) {
+      var d = new Date(h.t);
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      var ts = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      return '<div class="history-item"><span class="h-time">' + ts + '</span><span class="h-main"><span class="h-name">' + esc(h.name) + '</span><br>' + esc(h.address) + '</span></div>';
+    }).join('');
+  }
+  $('historyBtn').addEventListener('click', function() { renderHistory(); hModal.classList.add('show'); });
+  $('closeHistoryBtn').addEventListener('click', function() { hModal.classList.remove('show'); });
+  $('clearHistoryBtn').addEventListener('click', function() {
+    if (!confirm('确认清空全部历史拜访记录？')) return;
+    visitHistory = [];
+    localStorage.setItem(LS.history, JSON.stringify(visitHistory));
+    renderHistory();
   });
-  $('printBtn').addEventListener('click', function() { window.print(); });
-  $('printBtn2').addEventListener('click', function() { window.print(); });
+  hModal.addEventListener('click', function(e) { if (e.target === hModal) hModal.classList.remove('show'); });
+
+  /* ===== 回收站 ===== */
+  var rModal = $('recycleModal');
+  function renderRecycle() {
+    var el = $('recycleList');
+    if (!recycled.length) {
+      el.innerHTML = '<div class="history-empty">回收站是空的</div>';
+      return;
+    }
+    el.innerHTML = recycled.map(function(h, idx) {
+      var d = new Date(h.t);
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      var ts = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      return '<div class="history-item"><span class="h-time">' + ts + '</span><span class="h-main"><span class="h-name">' + esc(h.name) + '</span><br>' + esc(h.address) + '</span><button class="mini-btn restore-btn" data-idx="' + idx + '">恢复</button></div>';
+    }).join('');
+  }
+  function restoreRecycle(idx) {
+    var h = recycled[idx];
+    if (!h) return;
+    var dup = customers.some(function(c) { return c.address === h.address; });
+    if (dup) { toast('该地址客户已存在，无法恢复'); return; }
+    customers.push({
+      id: 'c' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+      name: h.name === '未命名客户' ? '' : h.name,
+      address: h.address,
+      lng: h.lng || null, lat: h.lat || null,
+      coded: !!(h.lng && h.lat)
+    });
+    recycled.splice(idx, 1);
+    localStorage.setItem(LS.recycle, JSON.stringify(recycled));
+    save(); renderList(); renderRouteSummary();
+    renderRecycle();
+    toast('已恢复：' + (h.name || '客户'));
+  }
+  $('recycleBtn').addEventListener('click', function() { renderRecycle(); rModal.classList.add('show'); });
+  $('closeRecycleBtn').addEventListener('click', function() { rModal.classList.remove('show'); });
+  $('clearRecycleBtn').addEventListener('click', function() {
+    if (!confirm('确认清空回收站？清空后无法恢复')) return;
+    recycled = [];
+    localStorage.setItem(LS.recycle, JSON.stringify(recycled));
+    renderRecycle();
+    toast('回收站已清空');
+  });
+  rModal.addEventListener('click', function(e) {
+    if (e.target === rModal) rModal.classList.remove('show');
+    var rb = e.target.closest('.restore-btn');
+    if (rb) restoreRecycle(parseInt(rb.getAttribute('data-idx'), 10));
+  });
   $('maskListBtn').addEventListener('click', function() {
     if (window.innerWidth <= 900) switchTab('list');
     else $('panelList').scrollIntoView({ behavior: 'smooth' });
@@ -1193,14 +1533,12 @@ input, textarea, select { font-family: inherit; }
   }
 
   // 键盘 Enter 快捷添加
-  $('addrInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+  $('addAddr').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
       $('addBtn').click();
     }
   });
-
-  // 提示：Ctrl+Enter 快捷添加
-  $('addrInput').setAttribute('placeholder', $('addrInput').getAttribute('placeholder') + ' （Ctrl+Enter 快捷添加）');
 })();
 </script>
 
