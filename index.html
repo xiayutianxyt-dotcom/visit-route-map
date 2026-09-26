@@ -384,6 +384,15 @@ input, textarea, select { font-family: inherit; }
 
 /* ===== 响应式 ===== */
 @media (max-width: 900px) {
+  .topbar { padding: 10px 12px; gap: 8px; }
+  .brand-sub { display: none; }
+  .brand-title { font-size: 15px; white-space: nowrap; }
+  .brand { flex-shrink: 0; }
+  .top-actions { gap: 5px; }
+  .top-actions .text-btn {
+    font-size: 0; gap: 0; padding: 8px 9px;
+    width: 34px; height: 34px; justify-content: center;
+  }
   .app { grid-template-columns: 1fr; padding: 10px 10px 80px; }
   .panel-left { display: none; }
   .panel-left.show { display: flex; }
