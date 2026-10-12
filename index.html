@@ -1726,10 +1726,10 @@ input, textarea, select { font-family: inherit; }
   renderList();
   renderRouteSummary();
 
-  var savedKey = localStorage.getItem(LS.key);
+  var savedKey = localStorage.getItem(LS.key) || '9dade9d00835f87060af323698c78498';
+  var savedJs = localStorage.getItem(LS.jscode) || '9b08129bf0618c5394397e8281260f09';
   if (savedKey) {
-    var jscode = localStorage.getItem(LS.jscode) || '';
-    loadAMap(savedKey, jscode);
+    loadAMap(savedKey, savedJs);
   } else {
     setMask(true, '启用地图，一键规划拜访路线', '填写客户地址后，点击「规划路线」，系统将自动计算最优拜访顺序并在地图上生成驾车路线。', true);
   }
@@ -1744,5 +1744,6 @@ input, textarea, select { font-family: inherit; }
 })();
 </script>
 
+<div style="position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:10px;color:#8a8a8a;background:rgba(255,255,255,.9);padding:3px 0;z-index:9999;letter-spacing:.5px">杭州美灿健康科技有限公司 · 智能路线图 v1013</div>
 </body>
 </html>
