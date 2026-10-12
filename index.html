@@ -153,6 +153,20 @@ input, textarea, select { font-family: inherit; }
 .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
 .btn-warn { background: #FFF4EC; border-color: #F5D6BC; color: var(--accent); }
 
+/* ===== 常用地址 chips ===== */
+.common-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.common-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #e8f3ee; color: #1f5c43;
+  border-radius: 14px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+}
+.common-chip:hover { background: #d2e8dc; }
+.common-chip.selected { background: #1f5c43; color: #fff; }
+.common-chip.selected .common-del { color: rgba(255,255,255,.7); }
+.common-del { color: #999; font-weight: bold; padding: 0 2px; }
+.common-del:hover { color: #c0504d; }
+.common-save { margin-top: 8px; font-size: 12px; }
+
 /* ===== 客户列表 ===== */
 .customer-list { flex: 1; overflow-y: auto; max-height: 56vh; padding: 8px; }
 .c-item {
@@ -448,6 +462,11 @@ input, textarea, select { font-family: inherit; }
     <div class="start-box">
       <label class="field-label">拜访起点（可选，默认为第一个客户）</label>
       <input type="text" class="start-input" id="startAddr" placeholder="如：浙江省杭州市西湖区文三路138号（公司地址）">
+      <div class="common-chips" id="commonChips"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm common-save" id="saveCommonBtn">＋ 起点存为常用地址</button>
+        <button class="btn btn-ghost btn-sm common-save" id="pickCommonBtn">＋ 地图点选新增</button>
+      </div>
     </div>
     <div class="input-box">
       <label class="field-label">新增客户（姓名 + 地址，可地图选点）</label>
@@ -491,6 +510,7 @@ input, textarea, select { font-family: inherit; }
           <button type="button" class="mode-tab" data-mode="walk">步行</button>
           <button type="button" class="mode-tab" data-mode="ride">骑行</button>
         </div>
+        <button class="btn" id="myLocBtn">📍 我的位置</button>
         <button class="btn" id="mapExpandBtn">放大地图</button>
         <button class="btn primary" id="mapNavLinkBtn">高德导航</button>
         <div class="map-status" id="mapStatus" style="display:none">
@@ -627,12 +647,14 @@ input, textarea, select { font-family: inherit; }
     key: 'mc_visit_amap_key',
     jscode: 'mc_visit_amap_jscode',
     history: 'mc_visit_history',
-    recycle: 'mc_visit_recycle'
+    recycle: 'mc_visit_recycle',
+    common: 'mc_visit_common_places'
   };
   var customers = [];   // {id, name, address, lng, lat, coded}
   var visitHistory = []; // {name, address, t}
   var recycled = [];     // {name, address, lng, lat, coded, t}
   var startAddr = '';
+  var commonPlaces = [];  // {name, addr}
   var map = null, amapReady = false, amapLoading = false, keySaved = false;
   var markers = [], lineLayer = null, routeLayer = null;
   var startGeocoding = false;
@@ -666,9 +688,133 @@ input, textarea, select { font-family: inherit; }
       visitHistory = JSON.parse(localStorage.getItem(LS.history) || '[]') || [];
       recycled = JSON.parse(localStorage.getItem(LS.recycle) || '[]') || [];
       startAddr = localStorage.getItem(LS.start) || '';
+      commonPlaces = JSON.parse(localStorage.getItem(LS.common) || '[]') || [];
     } catch(e) { customers = []; startAddr = ''; }
     $('startAddr').value = startAddr;
   }
+  function renderCommon() {
+    var box = $('commonChips');
+    if (!commonPlaces.length) { box.innerHTML = ''; return; }
+    box.innerHTML = commonPlaces.map(function(p, i) {
+      var cid = 'common_' + i;
+      var inPlan = planned.some(function(p2) { return p2.id === cid; });
+      return '<span class="common-chip' + (inPlan ? ' selected' : '') + '" data-i="' + i + '" data-cid="' + cid + '" title="' + esc(p.addr) + '">' +
+        (inPlan ? '✓ ' : '📍 ') + esc(p.name) +
+        ' <span class="common-del" data-i="' + i + '">×</span></span>';
+    }).join('');
+  }
+  function bindCommon() {
+    $('commonChips').addEventListener('click', function(e) {
+      var del = e.target.closest('.common-del');
+      if (del) {
+        var di = parseInt(del.dataset.i, 10);
+        var cid = 'common_' + di;
+        commonPlaces.splice(di, 1);
+        localStorage.setItem(LS.common, JSON.stringify(commonPlaces));
+        var pi = planned.findIndex(function(p) { return p.id === cid; });
+        if (pi >= 0) planned.splice(pi, 1);
+        renderCommon(); renderRouteSummary();
+        if (map) renderAll();
+        toast('已删除常用地址');
+        return;
+      }
+      var chip = e.target.closest('.common-chip');
+      if (chip) {
+        var i = parseInt(chip.dataset.i, 10);
+        var p = commonPlaces[i];
+        if (!p) return;
+        var cid = 'common_' + i;
+        var pi = planned.findIndex(function(x) { return x.id === cid; });
+        if (pi >= 0) {
+          planned.splice(pi, 1);
+          toast('已移出路线：' + p.name);
+        } else {
+          if (p.lng == null || p.lat == null) {
+            toast('该地址未定位：请点「地图点选新增」重新选点');
+            return;
+          }
+          planned.push({ id: cid, name: p.name, address: p.addr, lng: p.lng, lat: p.lat, coded: true, isCommon: true });
+          toast('已加入路线：' + p.name + '（可连续点选多个）');
+          if (map && window.switchTab) switchTab('map');
+        }
+        renderCommon(); renderRouteSummary();
+        if (map) renderAll();
+      }
+    });
+    $('saveCommonBtn').addEventListener('click', function() {
+      var addr = $('startAddr').value.trim();
+      if (!addr) { toast('请先在上方填写起点地址'); return; }
+      var name = prompt('给这个常用地址起个名字（如：公司、家）：', addr.slice(0, 12));
+      if (!name) return;
+      commonPlaces.push({ name: name.trim(), addr: addr });
+      localStorage.setItem(LS.common, JSON.stringify(commonPlaces));
+      renderCommon();
+      toast('已保存常用地址（未定位，建议用地图点选新增）：' + name);
+    });
+    $('pickCommonBtn').addEventListener('click', enterCommonPick);
+  }
+
+  /* ========== 我的位置：实时定位蓝点跟随 ========== */
+  var _myLocMarker = null, _myGeo = null, _myWatchId = null, _myLocOn = false;
+  function bindMyLocation() {
+    var btn = $('myLocBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      if (_myLocOn) {
+        _myLocOn = false;
+        try { if (_myGeo && _myWatchId != null) _myGeo.clearWatch(_myWatchId); } catch(e) {}
+        _myWatchId = null;
+        if (_myLocMarker && map) map.remove(_myLocMarker);
+        _myLocMarker = null;
+        btn.classList.remove('active');
+        btn.textContent = '📍 我的位置';
+        toast('已关闭实时定位');
+        return;
+      }
+      if (!map) { toast('地图未加载'); return; }
+      if (!_myGeo) _myGeo = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 15000 });
+      _myLocOn = true;
+      btn.classList.add('active');
+      btn.textContent = '定位中…';
+      if (window.innerWidth <= 900 && $('tabMap')) { $('tabMap').click(); }
+      _myWatchId = _myGeo.watchPosition(function(status, result) {
+        if (status !== 'complete' || !result.position) {
+          btn.textContent = '📍 我的位置';
+          toast('定位未就绪，请走到室外再试');
+          return;
+        }
+        var lng = result.position.lng, lat = result.position.lat;
+        if (!_myLocMarker) {
+          _myLocMarker = new AMap.Marker({
+            position: [lng, lat],
+            content: '<div style="width:20px;height:20px;border-radius:50%;background:#1e88e5;border:3px solid #fff;box-shadow:0 0 0 2px #1e88e5,0 2px 8px rgba(0,0,0,.4)"></div>',
+            offset: new AMap.Pixel(-10, -10), zIndex: 998
+          });
+          map.add(_myLocMarker);
+          map.setZoomAndCenter(15, new AMap.LngLat(lng, lat));
+        } else {
+          _myLocMarker.setPosition([lng, lat]);
+        }
+        btn.textContent = '定位中 ✓';
+      }, function(err) {
+        _myLocOn = false;
+        btn.classList.remove('active');
+        btn.textContent = '📍 我的位置';
+        toast('定位失败：请用 https 网址打开并允许位置权限');
+      });
+    });
+  }
+
+  /* 常用地址地图点选模式 */
+  var _commonPickMode = false, _commonPickMarker = null;
+  function enterCommonPick() {
+    if (!map) { toast('地图未加载：请先点右上角设置配置高德 Key'); return; }
+    _commonPickMode = true;
+    map.setDefaultCursor('crosshair');
+    toast('请在地图上点选常用地址的位置');
+    if (window.innerWidth <= 900 && $('tabMap')) { $('tabMap').click(); }
+  }
+
   function haversine(a, b) {
     var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
     var la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180;
@@ -690,7 +836,7 @@ input, textarea, select { font-family: inherit; }
         setMask(true, '加载失败', '高德地图加载失败，请检查 Key 是否正确、网络是否可用。', true);
         return;
       }
-      AMap.plugin(['AMap.Geocoder', 'AMap.Driving', 'AMap.Transfer', 'AMap.Walking', 'AMap.Riding'], function() {
+      AMap.plugin(['AMap.Geocoder', 'AMap.Driving', 'AMap.Transfer', 'AMap.Walking', 'AMap.Riding', 'AMap.Geolocation'], function() {
         amapReady = true;
         amapLoading = false;
         keySaved = true;
@@ -851,7 +997,9 @@ input, textarea, select { font-family: inherit; }
       lngs.push(startLng); lats.push(startLat);
     }
     if (lngs.length > 1) {
-      map.setFitView(markers, false, [40, 40, 40, 40]);
+      map.setFitView(markers, false, [60, 60, 60, 60]);
+      var z = map.getZoom();
+      if (z < 12) map.setZoom(12);
     }
     updateStatus();
   }
@@ -913,6 +1061,7 @@ input, textarea, select { font-family: inherit; }
         '<span class="rs-ops">' +
           '<button class="mini-btn" data-rp="up" data-id="' + c.id + '" title="上移"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>' +
           '<button class="mini-btn" data-rp="down" data-id="' + c.id + '" title="下移"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
+          '<button class="mini-btn" data-rp="nav" data-id="' + c.id + '" title="导航到这里（跳高德App）"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg></button>' +
         '</span></div>';
     });
     list.innerHTML = html;
@@ -1009,6 +1158,34 @@ input, textarea, select { font-family: inherit; }
   }
   var _pendingPickAddr = '';
   function onMapPick(e) {
+    if (!_pickMode && _commonPickMode) {
+      var lng = e.lnglat.lng, lat = e.lnglat.lat;
+      if (!_commonPickMarker) {
+        _commonPickMarker = new AMap.Marker({
+          position: [lng, lat],
+          content: '<div style="background:#1f5c43;color:#fff;border-radius:50%;width:30px;height:30px;line-height:30px;text-align:center;font-size:13px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">常</div>',
+          offset: new AMap.Pixel(-15, -30), zIndex: 999
+        });
+        map.add(_commonPickMarker);
+      } else {
+        _commonPickMarker.setPosition([lng, lat]);
+      }
+      if (!_pickGeocoder) _pickGeocoder = new AMap.Geocoder({});
+      _pickGeocoder.getAddress([lng, lat], function(status, result) {
+        var addr = (status === 'complete' && result.regeocode) ? (result.regeocode.formattedAddress || '') : '';
+        var name = prompt('位置：' + (addr || lng.toFixed(4) + ',' + lat.toFixed(4)) + '\n给这个常用地址起个名字：');
+        if (name && name.trim()) {
+          commonPlaces.push({ name: name.trim(), addr: addr || (lng.toFixed(5) + ', ' + lat.toFixed(5)), lng: lng, lat: lat });
+          localStorage.setItem(LS.common, JSON.stringify(commonPlaces));
+          renderCommon();
+          toast('已保存常用地址：' + name);
+        }
+        _commonPickMode = false;
+        map.setDefaultCursor('');
+        if (_commonPickMarker) { map.remove(_commonPickMarker); _commonPickMarker = null; }
+      });
+      return;
+    }
     if (!_pickMode) return;
     _pickLng = e.lnglat.lng; _pickLat = e.lnglat.lat;
     if (!_pickMarker) {
@@ -1386,8 +1563,14 @@ input, textarea, select { font-family: inherit; }
   $('rsList').addEventListener('click', function(e) {
     var btn = e.target.closest('button[data-rp]');
     if (!btn) return;
-    var dir = btn.getAttribute('data-rp') === 'up' ? -1 : 1;
+    var rpAct = btn.getAttribute('data-rp');
     var id = btn.getAttribute('data-id');
+    if (rpAct === 'nav') {
+      var tc = planned.find(function(p) { return p.id === id; });
+      if (tc) window.open(navUrlFor(tc), '_blank');
+      return;
+    }
+    var dir = rpAct === 'up' ? -1 : 1;
     var i = planned.findIndex(function(p) { return p.id === id; });
     if (i < 0) return;
     var j = i + dir;
@@ -1428,13 +1611,20 @@ input, textarea, select { font-family: inherit; }
     this.textContent = ex ? '还原地图' : '放大地图';
     if (map && map.resize) setTimeout(function () { map.resize(); }, 120);
   });
+  var _navIdx = 0;
   var mnl2 = $('mapNavLinkBtn');
   if (mnl2) mnl2.addEventListener('click', function () {
-    var first = null;
-    if (planned.length) first = planned[0];
-    else if (customers.length) first = customers.filter(function (c) { return c.coded; })[0] || customers[0];
-    if (!first) { toast('请先添加客户并规划路线'); return; }
-    window.open(navUrlFor(first), '_blank');
+    if (!planned.length) {
+      toast('请先点选客户或常用地址加入路线');
+      return;
+    }
+    if (_navIdx >= planned.length) _navIdx = 0;
+    var target = planned[_navIdx];
+    if (!target || target.lng == null) { toast('该点未定位，已跳过'); _navIdx++; return; }
+    window.open(navUrlFor(target), '_blank');
+    toast('已导到第 ' + (_navIdx + 1) + '/' + planned.length + ' 站：' + (target.name || ''));
+    _navIdx++;
+    mnl2.textContent = (_navIdx >= planned.length) ? '高德导航（今日已走完）' : '导航第 ' + (_navIdx + 1) + '/' + planned.length + ' 站';
   });
 
   $('exportBtn').addEventListener('click', exportData);
@@ -1530,6 +1720,9 @@ input, textarea, select { font-family: inherit; }
 
   /* ========== 初始化 ========== */
   load();
+  renderCommon();
+  bindCommon();
+  bindMyLocation();
   renderList();
   renderRouteSummary();
 
