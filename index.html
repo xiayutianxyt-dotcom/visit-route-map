@@ -90,7 +90,7 @@ input, textarea, select { font-family: inherit; }
   margin: 0 auto;
   padding: 14px 14px 90px;
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: 280px 1fr 1.3fr;
   gap: 14px;
   align-items: start;
 }
@@ -454,6 +454,25 @@ input, textarea, select { font-family: inherit; }
 
 <main class="app">
 
+  <!-- ===== 常用地址版块 ===== -->
+  <section class="panel panel-common" id="panelCommon">
+    <div class="panel-head">
+      <h2>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        常用地址
+      </h2>
+    </div>
+    <div class="start-box">
+      <label class="field-label">拜访起点（可选，默认为第一个客户）</label>
+      <input type="text" class="start-input" id="startAddr" placeholder="如：浙江省杭州市西湖区文三路138号（公司地址）">
+      <div class="common-chips" id="commonChips"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm common-save" id="saveCommonBtn">＋ 起点存为常用地址</button>
+        <button class="btn btn-ghost btn-sm common-save" id="pickCommonBtn">＋ 地图点选新增</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== 左：客户列表 ===== -->
   <section class="panel panel-left show" id="panelList">
     <div class="input-box">
@@ -555,25 +574,6 @@ input, textarea, select { font-family: inherit; }
     <!-- 打印专用 -->
     <div class="print-only">
       <div id="printList" style="padding:10px 0"></div>
-    </div>
-  </section>
-
-  <!-- ===== 常用地址版块 ===== -->
-  <section class="panel panel-common" id="panelCommon">
-    <div class="panel-head">
-      <h2>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-        常用地址
-      </h2>
-    </div>
-    <div class="start-box">
-      <label class="field-label">拜访起点（可选，默认为第一个客户）</label>
-      <input type="text" class="start-input" id="startAddr" placeholder="如：浙江省杭州市西湖区文三路138号（公司地址）">
-      <div class="common-chips" id="commonChips"></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm common-save" id="saveCommonBtn">＋ 起点存为常用地址</button>
-        <button class="btn btn-ghost btn-sm common-save" id="pickCommonBtn">＋ 地图点选新增</button>
-      </div>
     </div>
   </section>
 </main>
@@ -1757,6 +1757,6 @@ input, textarea, select { font-family: inherit; }
 })();
 </script>
 
-<div style="text-align:center;font-size:10px;color:#8a8a8a;padding:10px 0 6px;letter-spacing:.5px">杭州美灿健康科技有限公司 · 智能路线图 v1017</div>
+<div style="text-align:center;font-size:10px;color:#8a8a8a;padding:10px 0 6px;letter-spacing:.5px">杭州美灿健康科技有限公司 · 智能路线图 v1018</div>
 </body>
 </html>
