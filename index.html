@@ -407,19 +407,16 @@ input, textarea, select { font-family: inherit; }
     font-size: 0; gap: 0; padding: 8px 9px;
     width: 34px; height: 34px; justify-content: center;
   }
-  .app { grid-template-columns: 1fr; padding: 10px 10px 80px; }
-  .panel-left { display: none; }
-  .panel-left.show { display: flex; }
-  .panel-right { display: none; }
-  .panel-right.show { display: block; }
-  #map { height: calc(100vh - 170px); min-height: 300px; }
-  #panelMap.route-open #map { height: calc(100vh - 310px); }
+  .app { grid-template-columns: 1fr; padding: 10px 10px 20px; gap: 10px; }
+  .panel-left, .panel-right, .panel-common { display: block !important; }
+  #map { height: 45vh; min-height: 280px; }
+  #panelMap.route-open #map { height: 45vh; }
   .map-panel { padding: 8px 10px 10px; }
   .map-panel .map-tools2 { margin-top: 6px; }
-  .rs-list { max-height: 64px; }
-  .tabbar { display: flex; }
-  .customer-list { max-height: none; }
   .rs-list { max-height: 110px; }
+  .tabbar { display: none !important; }
+  .customer-list { max-height: 40vh; }
+  .map-tools { flex-wrap: wrap; }
 }
 </style>
 </head>
@@ -1760,6 +1757,6 @@ input, textarea, select { font-family: inherit; }
 })();
 </script>
 
-<div style="text-align:center;font-size:10px;color:#8a8a8a;padding:10px 0 6px;letter-spacing:.5px">杭州美灿健康科技有限公司 · 智能路线图 v1016</div>
+<div style="text-align:center;font-size:10px;color:#8a8a8a;padding:10px 0 6px;letter-spacing:.5px">杭州美灿健康科技有限公司 · 智能路线图 v1017</div>
 </body>
 </html>
