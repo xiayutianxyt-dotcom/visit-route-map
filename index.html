@@ -459,15 +459,6 @@ input, textarea, select { font-family: inherit; }
 
   <!-- ===== 左：客户列表 ===== -->
   <section class="panel panel-left show" id="panelList">
-    <div class="start-box">
-      <label class="field-label">拜访起点（可选，默认为第一个客户）</label>
-      <input type="text" class="start-input" id="startAddr" placeholder="如：浙江省杭州市西湖区文三路138号（公司地址）">
-      <div class="common-chips" id="commonChips"></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm common-save" id="saveCommonBtn">＋ 起点存为常用地址</button>
-        <button class="btn btn-ghost btn-sm common-save" id="pickCommonBtn">＋ 地图点选新增</button>
-      </div>
-    </div>
     <div class="input-box">
       <label class="field-label">新增客户（姓名 + 地址，可地图选点）</label>
       <input type="text" class="start-input" id="addName" placeholder="客户姓名（可选）">
@@ -498,6 +489,12 @@ input, textarea, select { font-family: inherit; }
 
   <!-- ===== 右：地图 ===== -->
   <section class="panel panel-right" id="panelMap">
+    <div class="panel-head" style="padding:10px 14px;border-bottom:1px solid var(--line)">
+      <h2>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+        路线地图
+      </h2>
+    </div>
     <div class="map-panel">
       <div class="map-tools" id="mapTools" style="display:none">
         <button class="btn primary" id="planBtn">
@@ -561,6 +558,25 @@ input, textarea, select { font-family: inherit; }
     <!-- 打印专用 -->
     <div class="print-only">
       <div id="printList" style="padding:10px 0"></div>
+    </div>
+  </section>
+
+  <!-- ===== 常用地址版块 ===== -->
+  <section class="panel panel-common" id="panelCommon">
+    <div class="panel-head">
+      <h2>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        常用地址
+      </h2>
+    </div>
+    <div class="start-box">
+      <label class="field-label">拜访起点（可选，默认为第一个客户）</label>
+      <input type="text" class="start-input" id="startAddr" placeholder="如：浙江省杭州市西湖区文三路138号（公司地址）">
+      <div class="common-chips" id="commonChips"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm common-save" id="saveCommonBtn">＋ 起点存为常用地址</button>
+        <button class="btn btn-ghost btn-sm common-save" id="pickCommonBtn">＋ 地图点选新增</button>
+      </div>
     </div>
   </section>
 </main>
@@ -1744,6 +1760,6 @@ input, textarea, select { font-family: inherit; }
 })();
 </script>
 
-<div style="text-align:center;font-size:10px;color:#8a8a8a;padding:10px 0 6px;letter-spacing:.5px">杭州美灿健康科技有限公司 · 智能路线图 v1015</div>
+<div style="text-align:center;font-size:10px;color:#8a8a8a;padding:10px 0 6px;letter-spacing:.5px">杭州美灿健康科技有限公司 · 智能路线图 v1016</div>
 </body>
 </html>
